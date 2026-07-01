@@ -1,0 +1,13 @@
+node_modules/
+*.local
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript incremental build cache
+node_modules/.tmp/

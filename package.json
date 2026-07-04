@@ -2,19 +2,27 @@
   "name": "s-calendar",
   "version": "0.1.0",
   "description": "Vue 3 component library for a calendar UI widget",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vlslrtm2751/s-calendar.git"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./style.css": "./dist/style.css"
   },
   "files": [
     "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
   ],
   "scripts": {
     "build": "vite build",

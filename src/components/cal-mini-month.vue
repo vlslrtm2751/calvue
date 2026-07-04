@@ -36,27 +36,31 @@
 </template>
 
 <script lang="ts" setup>
-  import type { CalView } from './types';
-  import { useCalendarGrid } from './use-calendar-grid';
-  import { useCasStore } from '@/stores';
+  import type { CalView, CalMiniOptions } from '../types';
+  import { useCalendarGrid } from '../composables/use-calendar-grid';
 
-  const casStore = useCasStore();
+  const props = defineProps<{ options?: Partial<CalMiniOptions> }>();
+  const selectedDate = defineModel<string>({ default: () => dayjs().toISOString() });
+
+  const DEFAULT_CAL_MINI_OPTIONS: CalMiniOptions = {
+    primaryColor: '#1976d2',
+    firstDay: 0,
+    weekdays: ['일', '월', '화', '수', '목', '금', '토']
+  };
+  const opts = computed<CalMiniOptions>(() => ({ ...DEFAULT_CAL_MINI_OPTIONS, ...props.options }));
+  const primaryColor = computed(() => opts.value.primaryColor);
+  const weekdays = computed(() => opts.value.weekdays);
+  const firstDay = computed(() => opts.value.firstDay);
 
   const view = ref<CalView>('month');
-  const miniAnchor = ref(dayjs(casStore.currentDate));
-  const selectedDate = computed(() => dayjs(casStore.currentDate));
+  const miniAnchor = ref(dayjs(selectedDate.value));
   const today = computed(() => dayjs());
 
-  watch(
-    () => casStore.currentDate,
-    (d) => {
-      miniAnchor.value = dayjs(d);
-    }
-  );
+  watch(selectedDate, (d) => {
+    if (d) miniAnchor.value = dayjs(d);
+  });
 
-  const { days, title } = useCalendarGrid(view, miniAnchor);
-
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const { days, title } = useCalendarGrid(view, miniAnchor, firstDay);
 
   function prevMonth(): void {
     miniAnchor.value = miniAnchor.value.subtract(1, 'month');
@@ -67,13 +71,13 @@
   }
 
   function selectDay(day: ReturnType<typeof dayjs>): void {
-    casStore.currentDate = day.toISOString();
+    selectedDate.value = day.toISOString();
   }
 </script>
 
 <style scoped>
   .cal-mini-month {
-    --cal-primary: rgb(var(--v-theme-primary));
+    --cal-primary: v-bind(primaryColor);
     padding: 8px;
     font-size: 12px;
     background: #fff;

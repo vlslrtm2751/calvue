@@ -25,9 +25,9 @@
 </template>
 
 <script lang="ts" setup>
-  import type { CalEvent } from './types';
-  import { fmtEventTime } from './format';
-  import { useCalTooltip } from './use-cal-tooltip';
+  import type { CalEvent } from '../../types';
+  import { fmtEventTime } from '../../format';
+  import { useCalTooltip } from '../../composables/use-cal-tooltip';
 
   // continued: 멀티위크 일정의 '시작 주가 아닌' 이어지는 조각 → 시각/점을 숨기고 제목만(시작 주에만 시간 표시)
   const props = defineProps<{ event: CalEvent; resizableEnd?: boolean; continued?: boolean }>();

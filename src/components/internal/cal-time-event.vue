@@ -24,9 +24,9 @@
 </template>
 
 <script lang="ts" setup>
-  import type { TimeBox } from './use-event-layout';
-  import type { CalEvent } from './types';
-  import { useCalTooltip } from './use-cal-tooltip';
+  import type { TimeBox } from '../../composables/use-event-layout';
+  import type { CalEvent } from '../../types';
+  import { useCalTooltip } from '../../composables/use-cal-tooltip';
 
   const props = defineProps<{ box: TimeBox; resizableEnd?: boolean; timeLabel?: string }>();
 

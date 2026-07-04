@@ -24,8 +24,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { useDragGhost } from './use-calendar-dnd';
-  import { fmtEventTime } from './format';
+  import { useDragGhost } from '../../composables/use-calendar-dnd';
+  import { fmtEventTime } from '../../format';
 
   const ghost = useDragGhost();
   // 종일이거나 멀티데이면 막대 형태, 아니면(단일일 timed) 점+시간 형태 — 월뷰 표시와 일치

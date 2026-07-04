@@ -26,10 +26,10 @@
 </template>
 
 <script lang="ts" setup>
-  import type { CalEvent, CalRange, EventOrder } from './types';
+  import type { CalEvent, CalRange, EventOrder } from '../../types';
   import type { Dayjs } from 'dayjs';
-  import { defaultEventOrder } from './use-event-order';
-  import { dayLabel } from './format';
+  import { defaultEventOrder } from '../../composables/use-event-order';
+  import { dayLabel } from '../../format';
 
   const props = defineProps<{ events: CalEvent[]; range: CalRange; eventOrder?: EventOrder }>();
   const emit = defineEmits<{ eventClick: [CalEvent] }>();

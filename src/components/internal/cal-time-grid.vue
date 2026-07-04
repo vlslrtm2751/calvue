@@ -148,13 +148,13 @@
 
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
-  import type { CalEvent, CalBusinessHours, EventOrder } from './types';
-  import { layoutDay } from './use-event-layout';
-  import { layoutDayGridRow, eventEndDay } from './use-daygrid-layout';
-  import { useCalendarDnd, useDragPreview } from './use-calendar-dnd';
-  import { useCalendarSelect, useSelectPreview } from './use-calendar-select';
-  import { isTouch } from './use-cal-device';
-  import { gridTimeLabel } from './format';
+  import type { CalEvent, CalBusinessHours, EventOrder } from '../../types';
+  import { layoutDay } from '../../composables/use-event-layout';
+  import { layoutDayGridRow, eventEndDay } from '../../composables/use-daygrid-layout';
+  import { useCalendarDnd, useDragPreview } from '../../composables/use-calendar-dnd';
+  import { useCalendarSelect, useSelectPreview } from '../../composables/use-calendar-select';
+  import { isTouch } from '../../composables/use-cal-device';
+  import { gridTimeLabel } from '../../format';
 
   const HOURS = Array.from({ length: 24 }, (_, i) => i);
   const HOUR_H_PX = 48;
@@ -446,7 +446,7 @@
     transition: background 0.1s;
   }
   .tg-allday__cell--drop {
-    background: rgba(var(--v-theme-primary), 0.12);
+    background: color-mix(in srgb, var(--cal-primary) 12%, transparent);
   }
   .tg-allday__cell--sel {
     background: #dbeafe;

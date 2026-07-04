@@ -22,6 +22,7 @@
 - `CalOptions.headerToolbar` — 기본값만 존재, 템플릿은 고정 레이아웃. 미적용.
 - `CalOptions.locale` — 기본값 `'ko'`만 존재, 어디에도 전달 안 됨. 미적용 (UI는 한국어 고정).
 - `CalEventInput.rrule` — normalize에서 전달만 되고 반복 전개 로직 없음(`use-recurrence.ts` 삭제됨). 미적용.
+- `more` emit — cal-calendar가 선언·중계하지만 cal-month-view는 `+N 더보기` 클릭을 내장 팝오버(`openPopover`)로 처리할 뿐 `emit('more')` 호출이 없음. 현재 미발생. (계획 승인 후 코드 확인으로 추가 발견된 항목)
 
 ## 섹션 구성
 
@@ -49,8 +50,8 @@
 README가 전제하는 후속 작업(이 README 작업의 범위 밖, 배포 전 필수):
 
 - [ ] `package.json` `exports`에 CSS 서브패스 별칭 추가(`"./style.css": "./dist/style.css"`) — 현재 exports 맵에는 `.`만 있어 CSS 경로가 차단됨. README의 `import 's-calendar/style.css'` 표기는 이 별칭 전제.
-- [ ] Task 10 빌드 후 실제 CSS 산출 파일명 확인(Vite 5 lib 모드 기본 `style.css` 가정) 및 위 별칭 경로 일치 검증.
-- [ ] Task 8·9 실제 커밋과 README의 CalMiniMonth·export 목록 대조(계획 이탈 시 문서 수정).
+- [x] Task 10 빌드 후 실제 CSS 산출 파일명 확인 — `dist/style.css` 실재 확인 완료(2026-07-04, 병행 세션 빌드 산출물).
+- [x] Task 8·9 실제 커밋과 README의 CalMiniMonth·export 목록 대조 — 커밋 `4a66aa7`·`4ec6a6d`가 계획과 일치함을 확인 완료.
 - [ ] 스크린샷 캡처 후 placeholder 교체.
 - [ ] npm에서 `s-calendar` 패키지명 사용 가능 여부 확인(선점됐으면 스코프명으로 변경 — README의 패키지명 문자열도 함께).
 

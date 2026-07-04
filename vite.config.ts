@@ -19,7 +19,7 @@ export default defineConfig({
     vue(),
     dts({
       insertTypesEntry: true,
-      include: ['src/**/*.ts', 'src/**/*.vue'],
+      include: ['src/**/*.ts', 'src/**/*.vue', 'auto-imports.d.ts', 'components.d.ts'],
       outDir: 'dist',
       tsconfigPath: './tsconfig.app.json',
     }),

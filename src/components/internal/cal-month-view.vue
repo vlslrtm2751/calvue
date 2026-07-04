@@ -141,20 +141,19 @@
 
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
-  import type { CalEvent, EventOrder } from './types';
-  import type { DayGridSegment } from './use-daygrid-layout';
-  import { layoutDayGridRow, eventEndDay } from './use-daygrid-layout';
-  import { defaultEventOrder } from './use-event-order';
-  import { useCalendarDnd } from './use-calendar-dnd';
-  import { useCalendarSelect, useSelectPreview } from './use-calendar-select';
-  import { fmtEventTime, dayLabel } from './format';
-  import { useCalTooltip } from './use-cal-tooltip';
+  import type { CalEvent, EventOrder } from '../../types';
+  import type { DayGridSegment } from '../../composables/use-daygrid-layout';
+  import { layoutDayGridRow, eventEndDay } from '../../composables/use-daygrid-layout';
+  import { defaultEventOrder } from '../../composables/use-event-order';
+  import { useCalendarDnd } from '../../composables/use-calendar-dnd';
+  import { useCalendarSelect, useSelectPreview } from '../../composables/use-calendar-select';
+  import { fmtEventTime, dayLabel } from '../../format';
+  import { useCalTooltip } from '../../composables/use-cal-tooltip';
 
   const props = defineProps<{
     weeks: Dayjs[][];
     events: CalEvent[];
     editable?: boolean;
-    holidays: Set<string>;
     today: Dayjs;
     weekdayColors?: Record<number, string>;
     firstDay?: number;
@@ -264,8 +263,6 @@
 
   function daynumClass(day: Dayjs): Record<string, boolean> {
     const dow = day.day(); // 0=일, 6=토
-    const key = day.format('YYYY-MM-DD');
-    const isHoliday = props.holidays.has(key);
     const isSun = dow === 0;
     const isSat = dow === 6;
     const isToday = day.isSame(props.today, 'day');
@@ -274,21 +271,17 @@
     return {
       'cal--sun': isSun && !isToday,
       'cal--sat': isSat && !isToday,
-      'cal--holiday': isHoliday && !isToday,
       'cal--today': isToday,
       'cal--muted': isMuted
     };
   }
 
-  /** today → CSS handles it; muted → let cal--muted class handle grey; holiday → CSS handles it; weekdayColors → inline color; else no style */
+  /** today → CSS handles it; muted → let cal--muted class handle grey; weekdayColors → inline color; else no style */
   function dayNumStyle(day: Dayjs): Record<string, string> {
     const isToday = day.isSame(props.today, 'day');
     if (isToday) return {};
     const isMuted = day.month() !== anchorMonth.value;
     if (isMuted) return {};
-    const key = day.format('YYYY-MM-DD');
-    const isHoliday = props.holidays.has(key);
-    if (isHoliday) return {};
     const color = props.weekdayColors?.[day.day()];
     return color ? { color } : {};
   }
@@ -360,7 +353,6 @@
     --cal-muted: #6b7280;
     --cal-sun: #ef4444;
     --cal-sat: #2563eb;
-    --cal-primary: rgb(var(--v-theme-primary));
 
     display: grid;
     grid-template-rows: auto 1fr;
@@ -541,10 +533,6 @@
     color: #fff;
     font-weight: 700;
     font-size: 13px;
-  }
-
-  .cal-month__daynum.cal--holiday {
-    color: var(--cal-sun);
   }
 
   /* +N 더보기 */

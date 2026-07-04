@@ -4,7 +4,7 @@
       <div class="cal-tip__title">{{ state.event.title }}</div>
       <hr class="cal-tip__hr" v-if="props.fields.length" />
       <template v-for="f in props.fields" :key="f">
-        <div class="cal-tip__row" v-if="f === 'creator' && creator">작성자: {{ getFullNameWithLevel(creator) }}</div>
+        <div class="cal-tip__row" v-if="f === 'creator' && creator">작성자: {{ creator }}</div>
         <div class="cal-tip__row" v-else-if="f === 'start'"
           >시작: {{ state.event.start.format('YYYY-MM-DD HH:mm') }}</div
         >
@@ -16,10 +16,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { getFullNameWithLevel } from '@/utils';
-  import type { UserDtoNew } from '@tienipia-official/saeroun-groupware-api';
-  import { useCalTooltip } from './use-cal-tooltip';
-  import type { CalTooltipField } from './types';
+  import { useCalTooltip } from '../../composables/use-cal-tooltip';
+  import type { CalTooltipField } from '../../types';
 
   const props = withDefaults(defineProps<{ fields?: CalTooltipField[] }>(), {
     fields: () => ['creator', 'start', 'end', 'description']
@@ -31,7 +29,7 @@
   const el = ref<HTMLElement | null>(null);
   const pos = reactive({ left: 0, top: 0 });
 
-  const creator = computed(() => state.event?.extendedProps?.creator as UserDtoNew | undefined);
+  const creator = computed(() => state.event?.extendedProps?.creator as string | undefined);
   const description = computed(() => state.event?.extendedProps?.description as string | undefined);
 
   function reposition() {

@@ -8,6 +8,8 @@ export interface CalEvent {
   /** 원본 이벤트 id (CRUD용) */
   rawId: string;
   calendarId: string;
+  /** 호출자가 정의하는 이벤트 출처 문자열 (기본 'cal') */
+  source: string;
   title: string;
   start: Dayjs;
   /** 종료(배타적). 종일은 익일 00:00로 정규화 */
@@ -28,17 +30,6 @@ export interface CalRange {
   end: Dayjs;
 }
 
-export type RecurFreq = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
-export type RecurWeekday = "SU" | "MO" | "TU" | "WE" | "TH" | "FR" | "SA";
-
-export interface RecurrenceForm {
-  enabled: boolean;
-  freq: RecurFreq;
-  interval: number;
-  byday: RecurWeekday[];
-  end: { type: "none" | "until" | "count"; until?: Dayjs; count?: number };
-}
-
 export interface CalBusinessHours {
   daysOfWeek: number[]; // 0=일 ~ 6=토
   startTime: string; // 'HH:mm'
@@ -56,7 +47,8 @@ export interface CalEventInput {
   color?: string; // 기본 토큰 색
   editable?: boolean; // 기본 false(읽기 전용)
   interactive?: boolean; // 기본 true. false면 클릭/툴팁 비활성(표시만)
-  source?: CalSourceKind; // 기본 'cal'
+  /** 호출자가 정의하는 이벤트 출처 문자열 (기본 'cal') */
+  source?: string;
   rrule?: string;
   extendedProps?: Record<string, unknown>;
 }
@@ -71,10 +63,11 @@ export interface CalOptions {
   views: CalView[]; // 표시할 뷰 (기본 ['day','week','month','list'])
   headerToolbar: { left: string; center: string; right: string };
   locale: string; // 'ko'
+  /** 강조색. --cal-primary CSS 커스텀 프로퍼티로 주입됨 (기본 '#1976d2') */
+  primaryColor: string;
   firstDay: number; // 주 시작 요일 0=일 (기본 0)
   weekends: boolean; // 주말(토·일) 표시 (기본 true; false면 숨겨 평일만 — 주/월뷰 5컬럼)
   weekdayColors: Record<number, string>; // {0:'#ef4444', 6:'#2563eb'}
-  showHolidays: boolean; // 공휴일 표시 (기본 true)
   showTooltip: boolean; // 호버 툴팁 (기본 true)
   tooltipFields: CalTooltipField[]; // 툴팁에 표시할 필드·순서 (기본 전부; 예 ['creator','start','end']면 설명 제외)
   businessHours: CalBusinessHours | null; // 업무시간 음영
@@ -90,4 +83,13 @@ export interface CalOptions {
   eventHeight: number; // 이벤트 바 높이(px) (기본 24)
   dayMaxEvents: number | false; // 월뷰 셀당 최대 표시 일정 수, 초과 시 '+N 더보기'. false면 제한 없이 전부 표시 (기본 false)
   eventOrder?: EventOrder; // 같은 날 내 정렬 (미지정 기본: 이른 시작일 먼저=넘어온 일정 위, 같은 날은 종일→멀티데이→당일, 시작시각순)
+}
+
+/** Options accepted by CalMiniMonth. */
+export interface CalMiniOptions {
+  /** 강조색. --cal-primary CSS 커스텀 프로퍼티로 주입됨 (기본 '#1976d2') */
+  primaryColor: string;
+  firstDay: number; // 주 시작 요일 0=일 (기본 0)
+  /** 요일 라벨, 일요일부터 (기본 ['일','월','화','수','목','금','토']) */
+  weekdays: string[];
 }

@@ -49,11 +49,11 @@
 
 README가 전제하는 후속 작업(이 README 작업의 범위 밖, 배포 전 필수):
 
-- [ ] `package.json` `exports`에 CSS 서브패스 별칭 추가(`"./style.css": "./dist/style.css"`) — 현재 exports 맵에는 `.`만 있어 CSS 경로가 차단됨. README의 `import 's-calendar/style.css'` 표기는 이 별칭 전제.
+- [x] `package.json` `exports`에 CSS 서브패스 별칭 추가 — 병행 세션 커밋 `dc844de`로 완료(2026-07-05). 별칭 형태(`"./style.css"`)가 README 표기와 일치함을 확인.
 - [x] Task 10 빌드 후 실제 CSS 산출 파일명 확인 — `dist/style.css` 실재 확인 완료(2026-07-04, 병행 세션 빌드 산출물).
 - [x] Task 8·9 실제 커밋과 README의 CalMiniMonth·export 목록 대조 — 커밋 `4a66aa7`·`4ec6a6d`가 계획과 일치함을 확인 완료.
 - [ ] 스크린샷 캡처 후 placeholder 교체.
-- [ ] npm에서 `s-calendar` 패키지명 사용 가능 여부 확인(선점됐으면 스코프명으로 변경 — README의 패키지명 문자열도 함께).
+- [x] npm에서 `s-calendar` 패키지명 사용 가능 여부 확인(2026-07-05) — **선점됨**(타인의 `s-calendar` v2.0.0 존재). 대안 `saeroun-cal-ui`는 미선점 확인. → 개명 결정 대기: 결정 시 package.json `name`과 README의 패키지명 문자열(설치 커맨드 2곳, import 4곳) 일괄 변경 필요.
 
 ## 작업 범위와 격리
 

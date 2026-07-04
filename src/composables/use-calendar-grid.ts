@@ -1,6 +1,7 @@
 import type { CalRange, CalView } from '../types';
 import { useDayjsCal } from './use-dayjs-cal';
 import type { Dayjs } from 'dayjs';
+import type { Ref } from 'vue';
 
 function startOfWeekBy(d: Dayjs, firstDay: number): Dayjs {
   const diff = (d.day() - firstDay + 7) % 7;

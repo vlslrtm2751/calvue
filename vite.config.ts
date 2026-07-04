@@ -21,6 +21,7 @@ export default defineConfig({
       insertTypesEntry: true,
       include: ['src/**/*.ts', 'src/**/*.vue'],
       outDir: 'dist',
+      tsconfigPath: './tsconfig.app.json',
     }),
   ],
   build: {

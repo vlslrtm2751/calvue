@@ -25,6 +25,38 @@ export interface CalEvent {
   extendedProps?: Record<string, unknown>;
 }
 
+/** 로케일별 UI 문자열 + 요일 배열 + 날짜/시간 포맷터. 내장 ko/en 카탈로그가 구현한다. */
+export interface CalMessages {
+  // 정적 UI 문자열
+  today: string;
+  prev: string;
+  next: string;
+  viewDay: string;
+  viewWeek: string;
+  viewMonth: string;
+  viewList: string;
+  allDay: string;
+  creator: string;
+  start: string;
+  end: string;
+  close: string;
+  noEvents: string;
+  todaySuffix: string;
+  more: (n: number) => string;
+  overlapCount: (n: number) => string;
+  // 요일 이름 (일요일 = index 0, 7개)
+  weekdaysShort: string[];
+  // 로케일별 날짜/시간 포맷터
+  monthTitle: (d: Dayjs) => string;
+  dayTitle: (d: Dayjs) => string;
+  weekTitle: (start: Dayjs, end: Dayjs) => string;
+  eventTime: (d: Dayjs) => string;
+  dayLabel: (ev: CalEvent, day: Dayjs) => string;
+  gridTimeLabel: (ev: CalEvent, day: Dayjs) => string;
+  popoverDate: (d: Dayjs) => string;
+  listMonthHeader: (d: Dayjs) => string;
+}
+
 export interface CalRange {
   start: Dayjs;
   end: Dayjs;
@@ -62,7 +94,8 @@ export type CalTooltipField = "creator" | "start" | "end" | "description";
 export interface CalOptions {
   views: CalView[]; // 표시할 뷰 (기본 ['day','week','month','list'])
   headerToolbar: { left: string; center: string; right: string };
-  locale: string; // 'ko'
+  locale: string; // 'ko' | 'en' 내장; 그 외는 messages로 공급 (기본 'ko')
+  messages?: Partial<CalMessages>; // 선택: 선택 로케일 기본값 위 키 단위 얕은 병합
   /** 강조색. --cal-primary CSS 커스텀 프로퍼티로 주입됨 (기본 '#1976d2') */
   primaryColor: string;
   firstDay: number; // 주 시작 요일 0=일 (기본 0)
@@ -90,6 +123,8 @@ export interface CalMiniOptions {
   /** 강조색. --cal-primary CSS 커스텀 프로퍼티로 주입됨 (기본 '#1976d2') */
   primaryColor: string;
   firstDay: number; // 주 시작 요일 0=일 (기본 0)
-  /** 요일 라벨, 일요일부터 (기본 ['일','월','화','수','목','금','토']) */
-  weekdays: string[];
+  /** 요일 라벨, 일요일부터. 미지정 시 로케일 카탈로그의 weekdaysShort 사용 (명시 시 우선) */
+  weekdays?: string[];
+  locale: string; // 'ko' | 'en' 내장 (기본 'ko')
+  messages?: Partial<CalMessages>; // 선택: 키 단위 얕은 병합
 }

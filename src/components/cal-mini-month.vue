@@ -45,7 +45,8 @@
   const DEFAULT_CAL_MINI_OPTIONS: CalMiniOptions = {
     primaryColor: '#1976d2',
     firstDay: 0,
-    weekdays: ['일', '월', '화', '수', '목', '금', '토']
+    weekdays: ['일', '월', '화', '수', '목', '금', '토'],
+    locale: 'ko'
   };
   const opts = computed<CalMiniOptions>(() => ({ ...DEFAULT_CAL_MINI_OPTIONS, ...props.options }));
   const primaryColor = computed(() => opts.value.primaryColor);

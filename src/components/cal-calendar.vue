@@ -1,9 +1,9 @@
 <template>
   <div class="cal" :style="rootStyle">
     <div class="cal-toolbar">
-      <button class="cal-btn" v-ripple @click="today">오늘</button>
-      <button class="cal-iconbtn" v-ripple @click="prev" aria-label="이전">‹</button>
-      <button class="cal-iconbtn" v-ripple @click="next" aria-label="다음">›</button>
+      <button class="cal-btn" @click="today">오늘</button>
+      <button class="cal-iconbtn" @click="prev" aria-label="이전">‹</button>
+      <button class="cal-iconbtn" @click="next" aria-label="다음">›</button>
       <span class="cal-title">{{ title }}</span>
       <span class="cal-spacer" />
       <span class="cal-pills" ref="pillsEl">
@@ -32,9 +32,8 @@
           :editable="opts.editable"
           :event-height="opts.eventHeight"
           :event-order="opts.eventOrder"
-          :events="visibleEvents"
+          :events="normalized"
           :first-day="firstDay"
-          :holidays="holidays"
           :resizable="opts.resizable"
           :selectable="opts.selectable"
           :today="todayDate"
@@ -48,7 +47,7 @@
         <cal-list-view
           v-else-if="view === 'list'"
           :event-order="opts.eventOrder"
-          :events="visibleEvents"
+          :events="normalized"
           :range="range"
           @event-click="(e) => emit('eventClick', e)" />
         <cal-time-grid
@@ -57,7 +56,7 @@
           :days="days"
           :editable="opts.editable"
           :event-order="opts.eventOrder"
-          :events="visibleEvents"
+          :events="normalized"
           :now-indicator="opts.nowIndicator"
           :resizable="opts.resizable"
           :scroll-time="opts.scrollTime"
@@ -78,11 +77,11 @@
 
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
-  import type { CalEvent, CalEventInput, CalOptions, CalRange, CalView } from './types';
-  import { useCalendarGrid } from './use-calendar-grid';
-  import { normalizeEvent } from './normalize';
-  import { useCalTooltip } from './use-cal-tooltip';
-  import { isTouch } from './use-cal-device';
+  import type { CalEvent, CalEventInput, CalOptions, CalRange, CalView } from '../types';
+  import { useCalendarGrid } from '../composables/use-calendar-grid';
+  import { normalizeEvent } from '../normalize';
+  import { useCalTooltip } from '../composables/use-cal-tooltip';
+  import { isTouch } from '../composables/use-cal-device';
 
   const props = withDefaults(
     defineProps<{ events?: CalEventInput[]; options?: Partial<CalOptions>; loading?: boolean }>(),
@@ -105,10 +104,10 @@
     views: ['day', 'week', 'month', 'list'],
     headerToolbar: { left: 'prev,next today', center: 'title', right: 'day,week,month,list' },
     locale: 'ko',
+    primaryColor: '#1976d2',
     firstDay: 0,
     weekends: true,
     weekdayColors: { 0: '#ef4444', 6: '#2563eb' },
-    showHolidays: true,
     showTooltip: true,
     tooltipFields: ['creator', 'start', 'end', 'description'],
     businessHours: { daysOfWeek: [1, 2, 3, 4, 5], startTime: '00:00', endTime: '24:00' },
@@ -125,6 +124,7 @@
     dayMaxEvents: false
   };
   const opts = computed<CalOptions>(() => ({ ...DEFAULT_CAL_OPTIONS, ...props.options }));
+  const primaryColor = computed(() => opts.value.primaryColor);
   const rootStyle = computed(() => {
     const [sh, sm] = (opts.value.slotDuration || '01:00').split(':').map(Number);
     const slotMin = (sh || 0) * 60 + (sm || 0);
@@ -172,14 +172,6 @@
   watch(range, (r) => emit('rangeChange', r), { immediate: true });
 
   const normalized = computed<CalEvent[]>(() => props.events.map((e, i) => normalizeEvent(e, i)));
-  const visibleEvents = computed<CalEvent[]>(() =>
-    opts.value.showHolidays ? normalized.value : normalized.value.filter((e) => e.source !== 'korea')
-  );
-  const holidays = computed(() =>
-    opts.value.showHolidays
-      ? new Set(normalized.value.filter((e) => e.source === 'korea').map((e) => e.start.format('YYYY-MM-DD')))
-      : new Set<string>()
-  );
 
   const ALL_VIEWS: { key: CalView; label: string }[] = [
     { key: 'day', label: '일' },
@@ -250,7 +242,7 @@
     --cal-muted: #6b7280;
     --cal-sun: #ef4444;
     --cal-sat: #2563eb;
-    --cal-primary: rgb(var(--v-theme-primary));
+    --cal-primary: v-bind(primaryColor);
     --cal-hour-h: 48px;
     display: flex;
     flex-direction: column;
@@ -340,7 +332,7 @@
     left: 0;
     border-radius: 999px;
     background: var(--cal-primary);
-    box-shadow: 0 1px 4px rgba(var(--v-theme-primary), 0.35);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--cal-primary) 35%, transparent);
     transition:
       transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
       width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -375,7 +367,7 @@
     right: 0;
     height: 3px;
     overflow: hidden;
-    background: rgba(var(--v-theme-primary), 0.12);
+    background: color-mix(in srgb, var(--cal-primary) 12%, transparent);
     z-index: 60;
   }
   .cal-loadbar::before {

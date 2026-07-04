@@ -1,4 +1,4 @@
-import type { CalEvent } from './types';
+import type { CalEvent } from '../types';
 import { canHover } from './use-cal-device';
 import { reactive } from 'vue';
 

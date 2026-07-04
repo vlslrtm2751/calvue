@@ -1,4 +1,4 @@
-import type { CalEvent } from './types';
+import type { CalEvent } from '../types';
 import type { Dayjs } from 'dayjs';
 
 export interface TimeBox {

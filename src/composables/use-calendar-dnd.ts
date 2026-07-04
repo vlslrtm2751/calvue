@@ -1,4 +1,4 @@
-import type { CalEvent } from './types';
+import type { CalEvent } from '../types';
 import { isTouch } from './use-cal-device';
 import type { Dayjs } from 'dayjs';
 import { reactive } from 'vue';

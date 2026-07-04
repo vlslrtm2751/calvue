@@ -1,4 +1,4 @@
-import type { CalRange, CalView } from './types';
+import type { CalRange, CalView } from '../types';
 import { useDayjsCal } from './use-dayjs-cal';
 import type { Dayjs } from 'dayjs';
 

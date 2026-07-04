@@ -1,4 +1,4 @@
-import type { CalEvent, EventOrder } from './types';
+import type { CalEvent, EventOrder } from '../types';
 import { defaultEventOrder } from './use-event-order';
 import type { Dayjs } from 'dayjs';
 

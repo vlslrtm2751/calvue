@@ -1,4 +1,4 @@
-import type { CalEvent, EventOrder } from './types';
+import type { CalEvent, EventOrder } from '../types';
 
 /** event spans more than one calendar day */
 function isMultiDay(e: CalEvent): boolean {

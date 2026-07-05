@@ -13,7 +13,7 @@
       }
     ">
     <span class="cal-evt__dot" v-if="!event.allDay && !continued" />
-    <span class="cal-evt__time" v-if="!event.allDay && !continued">{{ fmtEventTime(event.start) }}</span>
+    <span class="cal-evt__time" v-if="!event.allDay && !continued">{{ m.eventTime(event.start) }}</span>
     <span class="cal-evt__label" :class="{ 'cal-evt__label--timed': !event.allDay }">{{ event.title }}</span>
     <span
       class="cal-evt__resize"
@@ -26,7 +26,7 @@
 
 <script lang="ts" setup>
   import type { CalEvent } from '../../types';
-  import { fmtEventTime } from '../../format';
+  import { useCalI18n } from '../../composables/use-cal-i18n';
   import { useCalTooltip } from '../../composables/use-cal-tooltip';
 
   // continued: 멀티위크 일정의 '시작 주가 아닌' 이어지는 조각 → 시각/점을 숨기고 제목만(시작 주에만 시간 표시)
@@ -40,6 +40,7 @@
   const textColor = computed(() => (props.event.extendedProps?.textColor as string) ?? '#fff');
   const interactive = computed(() => props.event.interactive !== false);
   const tip = useCalTooltip();
+  const m = useCalI18n();
 </script>
 
 <style scoped>

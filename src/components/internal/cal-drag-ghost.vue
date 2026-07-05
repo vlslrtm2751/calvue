@@ -17,7 +17,7 @@
       v-else-if="ghost.active && ghost.event"
       :style="{ left: `${ghost.x}px`, top: `${ghost.y}px`, width: `${ghost.width}px` }">
       <span class="cal-drag-ghost__dot" :style="{ background: ghost.event.color }" />
-      <span class="cal-drag-ghost__time">{{ fmtEventTime(ghost.event.start) }}</span>
+      <span class="cal-drag-ghost__time">{{ m.eventTime(ghost.event.start) }}</span>
       <span class="cal-drag-ghost__title">{{ ghost.event.title }}</span>
     </div>
   </teleport>
@@ -25,9 +25,10 @@
 
 <script lang="ts" setup>
   import { useDragGhost } from '../../composables/use-calendar-dnd';
-  import { fmtEventTime } from '../../format';
+  import { useCalI18n } from '../../composables/use-cal-i18n';
 
   const ghost = useDragGhost();
+  const m = useCalI18n();
   // 종일이거나 멀티데이면 막대 형태, 아니면(단일일 timed) 점+시간 형태 — 월뷰 표시와 일치
   const isBar = computed(() => {
     const e = ghost.event;

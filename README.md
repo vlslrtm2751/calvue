@@ -17,6 +17,7 @@
 - **월뷰 `+N 더보기`** — 셀당 표시 개수 제한(`dayMaxEvents`)과 내장 팝오버
 - **미니 먼스**(`CalMiniMonth`) — 사이드바용 날짜 선택 위젯
 - **CSS 변수 테마** — `primaryColor` 옵션 하나로 강조색 일괄 변경
+- **내장 i18n** — `ko`·`en` 로케일 + `messages` 카탈로그 오버라이드
 - **가벼운 의존성** — peer 3종(vue · dayjs · @vueuse/core)뿐, Vuetify/Pinia 무관
 
 ## 설치
@@ -121,7 +122,8 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 | --- | --- | --- | --- |
 | `views` | `CalView[]` | `['day','week','month','list']` | 툴바에 노출할 뷰 필터 (표시 순서는 일·주·월·목록 고정) |
 | `headerToolbar` | `{ left; center; right }` | `{ left: 'prev,next today', center: 'title', right: 'day,week,month,list' }` | **현재 미적용** — 툴바 레이아웃은 고정입니다 |
-| `locale` | `string` | `'ko'` | **현재 미적용** — UI 문자열은 한국어 고정입니다 ([알아둘 점](#알아둘-점) 참조) |
+| `locale` | `string` | `'ko'` | UI 문자열·날짜 포맷 로케일. `'ko'`·`'en'` 내장, 그 외는 `messages`로 공급 ([로케일](#로케일-i18n) 참조) |
+| `messages` | `Partial<CalMessages>` | — | 선택한 로케일 카탈로그 위에 키 단위로 얕게 병합하는 오버라이드 |
 | `primaryColor` | `string` | `'#1976d2'` | 강조색. `--cal-primary` CSS 변수로 주입됩니다 |
 | `firstDay` | `number` | `0` | 주 시작 요일 (0=일요일) |
 | `weekends` | `boolean` | `true` | 주말 표시. `false`면 평일만 5컬럼으로 표시 |
@@ -193,7 +195,9 @@ const selected = ref(new Date().toISOString());
 | `v-model` | `string` (ISO 8601) | 현재 시각 | 선택된 날짜 |
 | `options.primaryColor` | `string` | `'#1976d2'` | 강조색 (`--cal-primary`) |
 | `options.firstDay` | `number` | `0` | 주 시작 요일 (0=일요일) |
-| `options.weekdays` | `string[]` | `['일','월','화','수','목','금','토']` | 요일 라벨 (일요일부터, 7개) |
+| `options.locale` | `string` | `'ko'` | `'ko'`·`'en'` 내장 로케일 |
+| `options.messages` | `Partial<CalMessages>` | — | 카탈로그 키 단위 오버라이드 |
+| `options.weekdays` | `string[]` | 카탈로그 `weekdaysShort` | 요일 라벨 직접 지정(일요일부터 7개). 지정 시 카탈로그보다 우선합니다 |
 
 ## 테마
 
@@ -204,10 +208,36 @@ const selected = ref(new Date().toISOString());
 <CalMiniMonth :options="{ primaryColor: '#6750a4' }" />
 ```
 
+## 로케일 (i18n)
+
+`ko`(기본)·`en` 카탈로그가 내장되어 있습니다. 버튼·라벨 같은 UI 문자열과 날짜·시간 포맷터가 전부 카탈로그에서 나오므로, 옵션 하나로 전체가 전환됩니다.
+
+```vue
+<CalCalendar :options="{ locale: 'en' }" />
+```
+
+특정 문구만 바꾸거나 다른 언어를 쓰려면 `messages`에 `Partial<CalMessages>`를 넘기세요. 선택한 로케일 카탈로그 위에 키 단위로 얕게 병합됩니다.
+
+```ts
+import type { CalMessages } from 's-calendar';
+
+const messages: Partial<CalMessages> = {
+  today: 'TODAY',
+  noEvents: '표시할 일정이 없어요.',
+  monthTitle: (d) => d.format('YYYY.MM')
+};
+```
+
+```vue
+<CalCalendar :options="{ locale: 'ko', messages }" />
+```
+
+`CalMessages`에는 정적 문자열 외에 요일 배열(`weekdaysShort`)과 날짜·시간 포맷터 함수(`monthTitle`, `eventTime`, `popoverDate` 등)가 포함되어 있어, 전체를 채우면 완전한 커스텀 로케일을 공급할 수 있습니다. `CalMiniMonth`도 동일한 `locale`·`messages` 옵션을 받습니다.
+
 ## 알아둘 점
 
-- **UI 문자열은 한국어 고정입니다** — '오늘' 버튼, 뷰 라벨(일/주/월/목록), '종일', 오전/오후 시각 표기. `locale` 옵션은 현재 적용되지 않습니다.
-- 일부 날짜 표기(월뷰 팝오버의 요일 등)는 **dayjs 전역 로케일**을 따릅니다. 한국어 표기를 원하면 앱에서 `import 'dayjs/locale/ko'; dayjs.locale('ko')`를 설정하세요.
+- 기본 로케일은 **한국어**입니다. 영어 UI는 `options.locale: 'en'`, 미지원 locale 값은 한국어로 폴백됩니다.
+- 날짜·시간 표기는 로케일 카탈로그의 포맷터가 직접 생성하므로 **dayjs 전역 로케일 설정과 무관**합니다.
 - 컴포넌트를 사용하면 소비 앱의 dayjs 인스턴스에 플러그인 5종(`weekday`, `isoWeek`, `isBetween`, `isSameOrAfter`, `isSameOrBefore`)이 자동 등록됩니다. 기능 추가일 뿐 기존 동작은 바꾸지 않습니다.
 - 이벤트의 `end`는 시작~종료 어디서나 **배타적**입니다. 종일 사흘짜리(7/8~7/10)의 `end`는 `'2026-07-11'`입니다.
 

@@ -38,6 +38,7 @@
 <script lang="ts" setup>
   import type { CalView, CalMiniOptions } from '../types';
   import { useCalendarGrid } from '../composables/use-calendar-grid';
+  import { resolveMessages } from '../i18n/messages';
 
   const props = defineProps<{ options?: Partial<CalMiniOptions> }>();
   const selectedDate = defineModel<string>({ default: () => dayjs().toISOString() });
@@ -45,12 +46,13 @@
   const DEFAULT_CAL_MINI_OPTIONS: CalMiniOptions = {
     primaryColor: '#1976d2',
     firstDay: 0,
-    weekdays: ['일', '월', '화', '수', '목', '금', '토'],
     locale: 'ko'
   };
   const opts = computed<CalMiniOptions>(() => ({ ...DEFAULT_CAL_MINI_OPTIONS, ...props.options }));
   const primaryColor = computed(() => opts.value.primaryColor);
-  const weekdays = computed(() => opts.value.weekdays);
+  const messages = computed(() => resolveMessages(opts.value.locale, opts.value.messages));
+  // 명시 weekdays가 있으면 우선, 없으면 로케일 카탈로그의 요일 배열
+  const weekdays = computed(() => opts.value.weekdays ?? messages.value.weekdaysShort);
   const firstDay = computed(() => opts.value.firstDay);
 
   const view = ref<CalView>('month');
@@ -61,7 +63,7 @@
     if (d) miniAnchor.value = dayjs(d);
   });
 
-  const { days, title } = useCalendarGrid(view, miniAnchor, firstDay);
+  const { days, title } = useCalendarGrid(view, miniAnchor, firstDay, undefined, messages);
 
   function prevMonth(): void {
     miniAnchor.value = miniAnchor.value.subtract(1, 'month');

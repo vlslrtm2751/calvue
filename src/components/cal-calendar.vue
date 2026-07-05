@@ -1,9 +1,9 @@
 <template>
   <div class="cal" :style="rootStyle">
     <div class="cal-toolbar">
-      <button class="cal-btn" @click="today">오늘</button>
-      <button class="cal-iconbtn" @click="prev" aria-label="이전">‹</button>
-      <button class="cal-iconbtn" @click="next" aria-label="다음">›</button>
+      <button class="cal-btn" @click="today">{{ messages.today }}</button>
+      <button class="cal-iconbtn" @click="prev" :aria-label="messages.prev">‹</button>
+      <button class="cal-iconbtn" @click="next" :aria-label="messages.next">›</button>
       <span class="cal-title">{{ title }}</span>
       <span class="cal-spacer" />
       <span class="cal-pills" ref="pillsEl">
@@ -82,6 +82,8 @@
   import { normalizeEvent } from '../normalize';
   import { useCalTooltip } from '../composables/use-cal-tooltip';
   import { isTouch } from '../composables/use-cal-device';
+  import { resolveMessages } from '../i18n/messages';
+  import { CAL_I18N } from '../composables/use-cal-i18n';
 
   const props = withDefaults(
     defineProps<{ events?: CalEventInput[]; options?: Partial<CalOptions>; loading?: boolean }>(),
@@ -125,6 +127,8 @@
   };
   const opts = computed<CalOptions>(() => ({ ...DEFAULT_CAL_OPTIONS, ...props.options }));
   const primaryColor = computed(() => opts.value.primaryColor);
+  const messages = computed(() => resolveMessages(opts.value.locale, opts.value.messages));
+  provide(CAL_I18N, messages);
   const rootStyle = computed(() => {
     const [sh, sm] = (opts.value.slotDuration || '01:00').split(':').map(Number);
     const slotMin = (sh || 0) * 60 + (sm || 0);
@@ -168,18 +172,24 @@
   const now = useNow({ interval: 60000 });
   const todayDate = computed(() => dayjs(now.value));
 
-  const { days, weeks, range, title } = useCalendarGrid(view, anchor, firstDay, weekends);
+  const { days, weeks, range, title } = useCalendarGrid(view, anchor, firstDay, weekends, messages);
   watch(range, (r) => emit('rangeChange', r), { immediate: true });
 
   const normalized = computed<CalEvent[]>(() => props.events.map((e, i) => normalizeEvent(e, i)));
 
-  const ALL_VIEWS: { key: CalView; label: string }[] = [
-    { key: 'day', label: '일' },
-    { key: 'week', label: '주' },
-    { key: 'month', label: '월' },
-    { key: 'list', label: '목록' }
-  ];
-  const views = computed(() => ALL_VIEWS.filter((v) => opts.value.views.includes(v.key)));
+  const ALL_VIEW_KEYS: CalView[] = ['day', 'week', 'month', 'list'];
+  const VIEW_LABEL_KEY: Record<CalView, 'viewDay' | 'viewWeek' | 'viewMonth' | 'viewList'> = {
+    day: 'viewDay',
+    week: 'viewWeek',
+    month: 'viewMonth',
+    list: 'viewList'
+  };
+  const views = computed(() =>
+    ALL_VIEW_KEYS.filter((k) => opts.value.views.includes(k)).map((key) => ({
+      key,
+      label: messages.value[VIEW_LABEL_KEY[key]]
+    }))
+  );
 
   function setView(v: CalView) {
     view.value = v;

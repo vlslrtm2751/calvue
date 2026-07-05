@@ -2,20 +2,32 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import dts from 'vite-plugin-dts'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
 
 export default defineConfig({
   plugins: [
+    AutoImport({
+      imports: ['vue', '@vueuse/core', { dayjs: [['default', 'dayjs']] }],
+      dts: true,
+    }),
+    Components({
+      dirs: ['src/components'],
+      deep: true,
+      dts: true,
+    }),
     vue(),
     dts({
       insertTypesEntry: true,
-      include: ['src/**/*.ts', 'src/**/*.vue'],
+      include: ['src/**/*.ts', 'src/**/*.vue', 'auto-imports.d.ts', 'components.d.ts'],
       outDir: 'dist',
+      tsconfigPath: './tsconfig.app.json',
     }),
   ],
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'SCalendar',
+      name: 'Calvue',
       formats: ['es'],
       fileName: () => 'index.js',
     },

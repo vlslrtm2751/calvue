@@ -64,3 +64,4 @@ README가 전제하는 후속 작업(이 README 작업의 범위 밖, 배포 전
 
 - 2026-07-05: 병행 세션의 i18n 구현(커밋 `1b0dd70`~`ed404f0`)이 본 스펙의 전제 두 가지를 해소 — `CalOptions.locale`이 실제 적용되고(내장 ko/en + `messages` 오버라이드, 미지원 값은 ko 폴백), "UI 문자열 한국어 고정"이 사라짐. README를 갱신함(`78af949`): 로케일 섹션 신설, CalOptions에 `messages` 추가(23필드), CalMiniMonth 카탈로그 폴백 반영. "현재 미적용" 잔여는 `headerToolbar`·`rrule` 2건, `more`는 여전히 미발생. 계획 문서(2026-07-05-readme.md)에 임베드된 README 본문·검증 기대값은 i18n 이전 기준의 실행 기록이며, 현행 원본은 README.md.
 - 2026-07-05: npm `s-calendar` 선점 확인 → 패키지명 변경 결정 대기 중. 결정 시 package.json `name`·`repository`와 README의 패키지명 문자열(설치 2곳·import 4곳·배지 링크) 일괄 변경.
+- 2026-07-05: 패키지명 **calvue** 확정(`52bc003`, npm 미선점 확인) — package.json name/repository URL, README 문자열 9곳, vite lib name(`Calvue`) 변경 완료. 잔여 수동 단계: GitHub 리포 rename(Settings → calvue, 옛 URL 자동 리다이렉트) 후 로컬 `git remote set-url origin https://github.com/vlslrtm2751/calvue.git`.

@@ -4,11 +4,11 @@
       <div class="cal-tip__title">{{ state.event.title }}</div>
       <hr class="cal-tip__hr" v-if="props.fields.length" />
       <template v-for="f in props.fields" :key="f">
-        <div class="cal-tip__row" v-if="f === 'creator' && creator">작성자: {{ creator }}</div>
+        <div class="cal-tip__row" v-if="f === 'creator' && creator">{{ m.creator }}: {{ creator }}</div>
         <div class="cal-tip__row" v-else-if="f === 'start'"
-          >시작: {{ state.event.start.format('YYYY-MM-DD HH:mm') }}</div
+          >{{ m.start }}: {{ state.event.start.format('YYYY-MM-DD HH:mm') }}</div
         >
-        <div class="cal-tip__row" v-else-if="f === 'end'">종료: {{ state.event.end.format('YYYY-MM-DD HH:mm') }}</div>
+        <div class="cal-tip__row" v-else-if="f === 'end'">{{ m.end }}: {{ state.event.end.format('YYYY-MM-DD HH:mm') }}</div>
         <div class="cal-tip__desc" v-else-if="f === 'description' && description">{{ description }}</div>
       </template>
     </div>
@@ -17,6 +17,7 @@
 
 <script lang="ts" setup>
   import { useCalTooltip } from '../../composables/use-cal-tooltip';
+  import { useCalI18n } from '../../composables/use-cal-i18n';
   import type { CalTooltipField } from '../../types';
 
   const props = withDefaults(defineProps<{ fields?: CalTooltipField[] }>(), {
@@ -26,6 +27,7 @@
   const GAP = 8;
 
   const { state } = useCalTooltip();
+  const m = useCalI18n();
   const el = ref<HTMLElement | null>(null);
   const pos = reactive({ left: 0, top: 0 });
 

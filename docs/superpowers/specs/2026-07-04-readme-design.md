@@ -59,3 +59,8 @@ README가 전제하는 후속 작업(이 README 작업의 범위 밖, 배포 전
 
 - 이 작업이 수정하는 파일: `README.md` 하나(+ 본 설계 문서). 추출 계획의 어느 태스크도 README.md를 건드리지 않으므로 병행 세션과 충돌 없음.
 - 커밋 시 해당 파일만 명시적으로 stage(`git add README.md`). `git add -A` 금지(병행 세션의 작업 트리 오염 방지).
+
+## 갱신 이력
+
+- 2026-07-05: 병행 세션의 i18n 구현(커밋 `1b0dd70`~`ed404f0`)이 본 스펙의 전제 두 가지를 해소 — `CalOptions.locale`이 실제 적용되고(내장 ko/en + `messages` 오버라이드, 미지원 값은 ko 폴백), "UI 문자열 한국어 고정"이 사라짐. README를 갱신함(`78af949`): 로케일 섹션 신설, CalOptions에 `messages` 추가(23필드), CalMiniMonth 카탈로그 폴백 반영. "현재 미적용" 잔여는 `headerToolbar`·`rrule` 2건, `more`는 여전히 미발생. 계획 문서(2026-07-05-readme.md)에 임베드된 README 본문·검증 기대값은 i18n 이전 기준의 실행 기록이며, 현행 원본은 README.md.
+- 2026-07-05: npm `s-calendar` 선점 확인 → 패키지명 변경 결정 대기 중. 결정 시 package.json `name`·`repository`와 README의 패키지명 문자열(설치 2곳·import 4곳·배지 링크) 일괄 변경.

@@ -5,7 +5,7 @@
       <div class="list-day">
         <div class="list-date" :class="{ 'list-date--today': group.isToday }">
           <span class="big">{{ group.dayNum }}</span>
-          {{ group.weekday }}<template v-if="group.isToday"> · 오늘</template>
+          {{ group.weekday }}<template v-if="group.isToday"> · {{ m.todaySuffix }}</template>
         </div>
         <div>
           <div
@@ -15,13 +15,13 @@
             :key="ev.key"
             @click="ev.interactive !== false && emit('eventClick', ev)">
             <span class="dot" :style="{ background: ev.color }"></span>
-            <span class="time">{{ dayLabel(ev, group.day) }}</span>
+            <span class="time">{{ m.dayLabel(ev, group.day) }}</span>
             <span class="title">{{ ev.title }}</span>
           </div>
         </div>
       </div>
     </template>
-    <div class="list-empty" v-if="groupedByDay.length === 0">이 기간에 일정이 없습니다.</div>
+    <div class="list-empty" v-if="groupedByDay.length === 0">{{ m.noEvents }}</div>
   </div>
 </template>
 
@@ -29,10 +29,11 @@
   import type { CalEvent, CalRange, EventOrder } from '../../types';
   import type { Dayjs } from 'dayjs';
   import { defaultEventOrder } from '../../composables/use-event-order';
-  import { dayLabel } from '../../format';
+  import { useCalI18n } from '../../composables/use-cal-i18n';
 
   const props = defineProps<{ events: CalEvent[]; range: CalRange; eventOrder?: EventOrder }>();
   const emit = defineEmits<{ eventClick: [CalEvent] }>();
+  const m = useCalI18n();
 
   interface DayGroup {
     day: Dayjs;
@@ -43,8 +44,6 @@
     monthLabel: string; // non-empty on the first group of each month → section header
     events: CalEvent[];
   }
-
-  const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
   const groupedByDay = computed<DayGroup[]>(() => {
     const { start, end } = props.range;
@@ -67,9 +66,9 @@
           day: dayStart,
           dateKey: cursor.format('YYYY-MM-DD'),
           dayNum: cursor.date(),
-          weekday: WEEKDAY_LABELS[cursor.day()],
+          weekday: m.value.weekdaysShort[cursor.day()],
           isToday: cursor.isSame(today, 'day'),
-          monthLabel: ym !== prevYm ? cursor.format('YYYY년 M월') : '',
+          monthLabel: ym !== prevYm ? m.value.listMonthHeader(cursor) : '',
           events: dayEvents
         });
         prevYm = ym;

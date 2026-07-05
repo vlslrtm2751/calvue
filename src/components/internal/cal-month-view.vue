@@ -94,7 +94,7 @@
                 }
               ">
               <span class="cal-month__dot" :style="{ background: seg.event.color }" />
-              <span class="cal-month__dot-time">{{ fmtEventTime(seg.event.start) }}</span>
+              <span class="cal-month__dot-time">{{ m.eventTime(seg.event.start) }}</span>
               <span class="cal-month__dot-title">{{ seg.event.title }}</span>
             </div>
           </template>
@@ -104,7 +104,7 @@
               v-if="rowLayouts[wi].overflowByCol[di] > 0"
               :style="{ gridColumn: `${di + 1} / ${di + 2}`, gridRow: maxEvents + 1 }"
               @click.stop="openPopover(day, $event)">
-              +{{ rowLayouts[wi].overflowByCol[di] }} 더보기
+              {{ m.more(rowLayouts[wi].overflowByCol[di]) }}
             </div>
           </template>
         </div>
@@ -120,8 +120,8 @@
       @keydown.esc="closePopover"
       ref="popoverEl">
       <div class="cal-month__popover-header">
-        <span class="cal-month__popover-date">{{ popoverDay.format('M월 D일 (dd)') }}</span>
-        <button class="cal-month__popover-close" @click="closePopover" aria-label="닫기">×</button>
+        <span class="cal-month__popover-date">{{ m.popoverDate(popoverDay) }}</span>
+        <button class="cal-month__popover-close" @click="closePopover" :aria-label="m.close">×</button>
       </div>
       <div class="cal-month__popover-events">
         <div
@@ -132,7 +132,7 @@
           @click="onPopoverEventClick(ev)">
           <span class="cal-month__popover-dot" :style="{ backgroundColor: ev.color }" />
           <span class="cal-month__popover-title">{{ ev.title }}</span>
-          <span class="cal-month__popover-time">{{ dayLabel(ev, popoverDay) }}</span>
+          <span class="cal-month__popover-time">{{ m.dayLabel(ev, popoverDay) }}</span>
         </div>
       </div>
     </div>
@@ -147,7 +147,7 @@
   import { defaultEventOrder } from '../../composables/use-event-order';
   import { useCalendarDnd } from '../../composables/use-calendar-dnd';
   import { useCalendarSelect, useSelectPreview } from '../../composables/use-calendar-select';
-  import { fmtEventTime, dayLabel } from '../../format';
+  import { useCalI18n } from '../../composables/use-cal-i18n';
   import { useCalTooltip } from '../../composables/use-cal-tooltip';
 
   const props = defineProps<{
@@ -169,7 +169,7 @@
 
   // 요일 헤더·컬럼 수는 실제 그리드(weeks[0])에서 도출 → weekends=false면 자동으로 평일만(5컬럼)
   const DOW_LABELS = computed(() => {
-    const base = ['일', '월', '화', '수', '목', '금', '토'];
+    const base = m.value.weekdaysShort;
     return (props.weeks[0] ?? []).map((d) => ({ label: base[d.day()], dow: d.day() }));
   });
   const colCount = computed(() => props.weeks[0]?.length ?? 7);
@@ -195,6 +195,7 @@
   );
   const selectPreview = useSelectPreview();
   const tip = useCalTooltip();
+  const m = useCalI18n();
 
   function onCellClick(day: Dayjs): void {
     if (props.selectable === false) return;

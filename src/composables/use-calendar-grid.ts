@@ -1,5 +1,6 @@
-import type { CalRange, CalView } from '../types';
+import type { CalRange, CalView, CalMessages } from '../types';
 import { useDayjsCal } from './use-dayjs-cal';
+import { ko } from '../i18n/messages';
 import type { Dayjs } from 'dayjs';
 import type { Ref } from 'vue';
 
@@ -12,7 +13,8 @@ export function useCalendarGrid(
   view: Ref<CalView>,
   anchor: Ref<Dayjs>,
   firstDay: Ref<number> = ref(0),
-  weekends: Ref<boolean> = ref(true)
+  weekends: Ref<boolean> = ref(true),
+  messages: Ref<CalMessages> = ref(ko)
 ) {
   useDayjsCal();
 
@@ -49,18 +51,13 @@ export function useCalendarGrid(
 
   const title = computed<string>(() => {
     const a = anchor.value;
-    if (view.value === 'day') return a.format('YYYY년 M월 D일 (ddd)');
+    const m = messages.value;
+    if (view.value === 'day') return m.dayTitle(a);
     if (view.value === 'week') {
       const s = startOfWeekBy(a, firstDay.value);
-      const e = s.add(6, 'day');
-      if (s.year() !== e.year()) {
-        return `${s.format('YYYY년 M월 D일')} – ${e.format('YYYY년 M월 D일')}`;
-      }
-      return s.month() === e.month()
-        ? `${s.format('YYYY년 M월 D')}–${e.format('D일')}`
-        : `${s.format('YYYY년 M월 D일')} – ${e.format('M월 D일')}`;
+      return m.weekTitle(s, s.add(6, 'day'));
     }
-    return a.format('YYYY년 M월');
+    return m.monthTitle(a);
   });
 
   return { range, days, weeks, title };

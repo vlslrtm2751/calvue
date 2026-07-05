@@ -4,14 +4,14 @@
     <div class="tg-head" :style="gridCols">
       <div class="tg-corner"></div>
       <div class="tg-dcol" v-for="day in days" :class="dayHeadClass(day)" :key="day.format('YYYY-MM-DD')">
-        <div class="tg-dn" :style="dayNameStyle(day)">{{ day.format('dd') }}</div>
+        <div class="tg-dn" :style="dayNameStyle(day)">{{ m.weekdaysShort[day.day()] }}</div>
         <div class="tg-dd" :style="dayNumStyle(day)">{{ day.format('D') }}</div>
       </div>
     </div>
 
     <!-- All-day row -->
     <div class="tg-allday">
-      <div class="tg-corner tg-corner--allday">종일</div>
+      <div class="tg-corner tg-corner--allday">{{ m.allDay }}</div>
       <div class="tg-allday__grid" :style="allDayGridStyle">
         <!-- per-day cells (behind the bars): click → 1-day all-day, drag → multi-day all-day,
              and drop targets for horizontal drag of existing all-day events (model A). -->
@@ -89,7 +89,7 @@
               pointerEvents: draggingKey || resizingKey ? 'none' : undefined,
               opacity: draggingKey === box.event.key || resizingKey === box.event.key ? 0.5 : undefined
             }"
-            :time-label="gridTimeLabel(box.event, day)"
+            :time-label="m.gridTimeLabel(box.event, day)"
             @click="(p) => onTimedClick(p, day)"
             @pointerdown="(p) => startTimeDrag(p.ev, p.native)"
             @resize-pointerdown="(p) => startTimeResize(p.ev, p.native)" />
@@ -126,8 +126,8 @@
         @click.stop
         ref="clusterEl">
         <div class="tg-cluster__head">
-          <span>겹친 일정 {{ cluster.events.length }}건</span>
-          <button class="tg-cluster__close" @click="cluster = null" aria-label="닫기">×</button>
+          <span>{{ m.overlapCount(cluster.events.length) }}</span>
+          <button class="tg-cluster__close" @click="cluster = null" :aria-label="m.close">×</button>
         </div>
         <div class="tg-cluster__list">
           <div
@@ -154,7 +154,7 @@
   import { useCalendarDnd, useDragPreview } from '../../composables/use-calendar-dnd';
   import { useCalendarSelect, useSelectPreview } from '../../composables/use-calendar-select';
   import { isTouch } from '../../composables/use-cal-device';
-  import { gridTimeLabel } from '../../format';
+  import { useCalI18n } from '../../composables/use-cal-i18n';
 
   const HOURS = Array.from({ length: 24 }, (_, i) => i);
   const HOUR_H_PX = 48;
@@ -182,6 +182,8 @@
     eventMove: [unknown];
     eventResize: [unknown];
   }>();
+
+  const m = useCalI18n();
 
   const {
     draggingKey,

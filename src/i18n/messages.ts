@@ -54,6 +54,7 @@ export const ko: CalMessages = {
   start: '시작',
   end: '종료',
   close: '닫기',
+  resizeHint: '기간 조절',
   noEvents: '이 기간에 일정이 없습니다.',
   todaySuffix: '오늘',
   more: (n) => `+${n} 더보기`,
@@ -129,6 +130,7 @@ export const en: CalMessages = {
   start: 'Start',
   end: 'End',
   close: 'Close',
+  resizeHint: 'Resize',
   noEvents: 'No events in this period.',
   todaySuffix: 'Today',
   more: (n) => `+${n} more`,
@@ -149,6 +151,6 @@ const BUILTINS: Record<string, CalMessages> = { ko, en };
 
 /** locale로 내장 카탈로그 선택(미지원 → ko) 후 overrides를 키 단위 얕은 병합. */
 export function resolveMessages(locale: string, overrides?: Partial<CalMessages>): CalMessages {
-  const base = BUILTINS[locale] ?? ko;
+  const base = Object.prototype.hasOwnProperty.call(BUILTINS, locale) ? BUILTINS[locale] : ko;
   return overrides ? { ...base, ...overrides } : base;
 }

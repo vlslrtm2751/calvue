@@ -40,6 +40,7 @@ export interface CalMessages {
   start: string;
   end: string;
   close: string;
+  resizeHint: string;
   noEvents: string;
   todaySuffix: string;
   more: (n: number) => string;

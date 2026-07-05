@@ -20,7 +20,7 @@
       v-if="resizableEnd"
       @click.stop
       @pointerdown.stop="(e) => $emit('resizePointerdown', { ev: event, native: e })"
-      title="기간 조절" />
+      :title="m.resizeHint" />
   </div>
 </template>
 

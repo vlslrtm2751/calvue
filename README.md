@@ -1,4 +1,4 @@
-# s-calendar
+# calvue
 
 월 / 주 / 일 / 목록 뷰와 드래그 이동·리사이즈·범위 선택을 지원하는 경량 Vue 3 캘린더 컴포넌트 라이브러리입니다.
 
@@ -23,9 +23,9 @@
 ## 설치
 
 ```bash
-yarn add s-calendar dayjs @vueuse/core
+yarn add calvue dayjs @vueuse/core
 # 또는
-npm install s-calendar dayjs @vueuse/core
+npm install calvue dayjs @vueuse/core
 ```
 
 `vue ^3.4` · `dayjs ^1.11` · `@vueuse/core ^11`은 peer dependency로 소비 앱에 설치되어 있어야 합니다. 스타일은 별도 파일이므로 앱 진입점에서 한 번 import 합니다.
@@ -46,9 +46,9 @@ npm install s-calendar dayjs @vueuse/core
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { CalCalendar } from 's-calendar';
-import type { CalEvent, CalEventInput, CalRange, CalView } from 's-calendar';
-import 's-calendar/style.css';
+import { CalCalendar } from 'calvue';
+import type { CalEvent, CalEventInput, CalRange, CalView } from 'calvue';
+import 'calvue/style.css';
 
 const view = ref<CalView>('month');
 const date = ref(new Date().toISOString());
@@ -183,8 +183,8 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { CalMiniMonth } from 's-calendar';
-import 's-calendar/style.css';
+import { CalMiniMonth } from 'calvue';
+import 'calvue/style.css';
 
 const selected = ref(new Date().toISOString());
 </script>
@@ -219,7 +219,7 @@ const selected = ref(new Date().toISOString());
 특정 문구만 바꾸거나 다른 언어를 쓰려면 `messages`에 `Partial<CalMessages>`를 넘기세요. 선택한 로케일 카탈로그 위에 키 단위로 얕게 병합됩니다.
 
 ```ts
-import type { CalMessages } from 's-calendar';
+import type { CalMessages } from 'calvue';
 
 const messages: Partial<CalMessages> = {
   today: 'TODAY',

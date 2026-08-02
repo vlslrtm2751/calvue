@@ -4,7 +4,14 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<!-- TODO: 스크린샷 추가 (라이브러리 추출 Task 10 스모크 테스트 시 캡처) -->
+![calvue 월 뷰 — 미니 먼스 위젯과 함께](docs/assets/screenshot-month.png)
+
+<details>
+<summary>주(week) 뷰 스크린샷 보기</summary>
+
+![calvue 주 뷰 — 종일 레인, 시간 그리드, 현재시각 라인](docs/assets/screenshot-week.png)
+
+</details>
 
 ## 특징
 

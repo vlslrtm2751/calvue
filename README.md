@@ -4,7 +4,14 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<!-- TODO: 스크린샷 추가 (라이브러리 추출 Task 10 스모크 테스트 시 캡처) -->
+![calvue 월 뷰 — 미니 먼스 위젯과 함께](docs/assets/screenshot-month.png)
+
+<details>
+<summary>주(week) 뷰 스크린샷 보기</summary>
+
+![calvue 주 뷰 — 종일 레인, 시간 그리드, 현재시각 라인](docs/assets/screenshot-week.png)
+
+</details>
 
 ## 특징
 
@@ -245,6 +252,7 @@ const messages: Partial<CalMessages> = {
 
 ```bash
 yarn            # 의존성 설치 (yarn 전용 — npm install 금지)
+yarn play       # 데모 플레이그라운드 실행 (playground/ — 두 컴포넌트를 브라우저에서 확인)
 yarn build      # dist/ 빌드 (ES 모듈 + 타입 선언 + style.css)
 yarn dev        # watch 빌드
 yarn typecheck  # vue-tsc 타입 검사

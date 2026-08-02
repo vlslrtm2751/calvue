@@ -141,7 +141,7 @@
 
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
-  import type { CalEvent, EventOrder } from '../../types';
+  import type { CalEvent, CalEventChange, EventOrder } from '../../types';
   import type { DayGridSegment } from '../../composables/use-daygrid-layout';
   import { layoutDayGridRow, eventEndDay } from '../../composables/use-daygrid-layout';
   import { defaultEventOrder } from '../../composables/use-event-order';
@@ -177,9 +177,8 @@
   const emit = defineEmits<{
     eventClick: [CalEvent];
     select: [{ start: Dayjs; end: Dayjs; allDay: boolean }];
-    more: [Dayjs];
-    eventMove: [unknown];
-    eventResize: [unknown];
+    eventMove: [CalEventChange];
+    eventResize: [CalEventChange];
   }>();
 
   const { draggingKey, resizingKey, inDropPreview, startMonthDrag, startResizeEnd, consumeDrag } = useCalendarDnd(

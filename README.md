@@ -2,6 +2,8 @@
 
 월 / 주 / 일 / 목록 뷰와 드래그 이동·리사이즈·범위 선택을 지원하는 경량 Vue 3 캘린더 컴포넌트 라이브러리입니다.
 
+[![npm](https://img.shields.io/npm/v/calvue.svg)](https://www.npmjs.com/package/calvue)
+[![CI](https://github.com/vlslrtm2751/calvue/actions/workflows/ci.yml/badge.svg)](https://github.com/vlslrtm2751/calvue/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ![calvue 월 뷰 — 미니 먼스 위젯과 함께](docs/assets/screenshot-month.png)

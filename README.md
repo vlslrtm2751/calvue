@@ -252,6 +252,7 @@ const messages: Partial<CalMessages> = {
 
 ```bash
 yarn            # 의존성 설치 (yarn 전용 — npm install 금지)
+yarn play       # 데모 플레이그라운드 실행 (playground/ — 두 컴포넌트를 브라우저에서 확인)
 yarn build      # dist/ 빌드 (ES 모듈 + 타입 선언 + style.css)
 yarn dev        # watch 빌드
 yarn typecheck  # vue-tsc 타입 검사

@@ -27,6 +27,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite build --watch",
+    "play": "vite --config playground/vite.config.ts",
     "typecheck": "vue-tsc --noEmit --project tsconfig.app.json"
   },
   "peerDependencies": {

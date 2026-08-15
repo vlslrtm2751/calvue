@@ -172,7 +172,7 @@
   const { days, weeks, range, title } = useCalendarGrid(view, anchor, firstDay, weekends, messages);
   watch(range, (r) => emit('rangeChange', r), { immediate: true });
 
-  const normalized = computed<CalEvent[]>(() => props.events.map((e, i) => normalizeEvent(e, i)));
+  const normalized = computed<CalEvent[]>(() => props.events.map((e) => normalizeEvent(e)));
 
   const ALL_VIEW_KEYS: CalView[] = ['day', 'week', 'month', 'list'];
   const VIEW_LABEL_KEY: Record<CalView, 'viewDay' | 'viewWeek' | 'viewMonth' | 'viewList'> = {

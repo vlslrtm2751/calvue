@@ -1,16 +1,20 @@
 <template>
   <teleport to="body">
     <div class="cal-tip" v-if="state.event" :style="{ left: pos.left + 'px', top: pos.top + 'px' }" ref="el">
-      <div class="cal-tip__title">{{ state.event.title }}</div>
-      <hr class="cal-tip__hr" v-if="props.fields.length" />
-      <template v-for="f in props.fields" :key="f">
-        <div class="cal-tip__row" v-if="f === 'creator' && creator">{{ m.creator }}: {{ creator }}</div>
-        <div class="cal-tip__row" v-else-if="f === 'start'"
-          >{{ m.start }}: {{ state.event.start.format('YYYY-MM-DD HH:mm') }}</div
-        >
-        <div class="cal-tip__row" v-else-if="f === 'end'">{{ m.end }}: {{ state.event.end.format('YYYY-MM-DD HH:mm') }}</div>
-        <div class="cal-tip__desc" v-else-if="f === 'description' && description">{{ description }}</div>
-      </template>
+      <slot :event="state.event">
+        <div class="cal-tip__title">{{ state.event.title }}</div>
+        <hr class="cal-tip__hr" v-if="props.fields.length" />
+        <template v-for="f in props.fields" :key="f">
+          <div class="cal-tip__row" v-if="f === 'creator' && creator">{{ m.creator }}: {{ creator }}</div>
+          <div class="cal-tip__row" v-else-if="f === 'start'"
+            >{{ m.start }}: {{ state.event.start.format('YYYY-MM-DD HH:mm') }}</div
+          >
+          <div class="cal-tip__row" v-else-if="f === 'end'"
+            >{{ m.end }}: {{ state.event.end.format('YYYY-MM-DD HH:mm') }}</div
+          >
+          <div class="cal-tip__desc" v-else-if="f === 'description' && description">{{ description }}</div>
+        </template>
+      </slot>
     </div>
   </teleport>
 </template>
@@ -71,7 +75,7 @@
     padding: 8px 12px;
     font-size: 13px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    z-index: 10000;
+    z-index: var(--cal-tooltip-z, 10000);
     pointer-events: none;
     max-width: 320px;
   }

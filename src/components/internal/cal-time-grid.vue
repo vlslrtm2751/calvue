@@ -171,7 +171,8 @@
   const HOUR_H_PX = 48;
 
   function toMinutes(hhmm: string | undefined, fallback: number): number {
-    const [h, m] = (hhmm ?? '').split(':').map(Number);
+    if (!hhmm) return fallback;
+    const [h, m] = hhmm.split(':').map(Number);
     return Number.isFinite(h) ? (h || 0) * 60 + (m || 0) : fallback;
   }
 

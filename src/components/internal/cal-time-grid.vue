@@ -130,12 +130,7 @@
     </div>
     <!-- 터치: 겹친 일정 클러스터 팝오버 — .cal-swipe transform 밖으로 teleport(fixed를 뷰포트 기준으로) -->
     <Teleport to="body">
-      <div
-        class="tg-cluster"
-        v-if="cluster"
-        :style="{ top: cluster.top + 'px', left: cluster.left + 'px' }"
-        @click.stop
-        ref="clusterEl">
+      <div class="tg-cluster" v-if="cluster" :style="clusterStyle" @click.stop ref="clusterEl">
         <div class="tg-cluster__head">
           <span>{{ m.overlapCount(cluster.events.length) }}</span>
           <button class="tg-cluster__close" @click="cluster = null" :aria-label="m.close">×</button>
@@ -341,8 +336,16 @@
 
   // 터치: 겹친 일정 탭 시 그 시간대에 겹친 일정 목록 팝오버 (데스크톱은 바로 상세). hover 없는 기기에서
   // 좁아진 cascade 박스를 정확히 집기 어려우므로, 대충 탭해도 겹친 일정들을 모아 보여주고 거기서 선택.
-  const cluster = ref<{ events: CalEvent[]; top: number; left: number } | null>(null);
+  /** 뷰포트 가장자리에서 유지할 최소 여백 */
+  const CLUSTER_MARGIN = 8;
+  /** 탭 지점과 팝오버 사이 간격 */
+  const CLUSTER_GAP = 12;
+
+  const cluster = ref<{ events: CalEvent[] } | null>(null);
   const clusterEl = ref<HTMLElement | null>(null);
+  const clusterStyle = ref<Record<string, string>>({});
+  // 반응형일 필요 없음 — 렌더링에 쓰지 않고 위치 계산에만 쓴다
+  let clusterTap: { x: number; y: number } | null = null;
 
   function onTimedClick(p: { event: CalEvent; native: MouseEvent }, day: Dayjs): void {
     if (consumeDrag()) return;
@@ -358,19 +361,33 @@
           .filter((e) => !e.start.isAfter(tapTime) && e.end.isAfter(tapTime)) // start ≤ 탭시각 < end
           .sort((a, b) => a.start.valueOf() - b.start.valueOf());
         if (atPoint.length > 1) {
-          const W = 248;
-          const h = Math.min(320, 44 + atPoint.length * 40);
-          const left = Math.max(8, Math.min(p.native.clientX - W / 2, window.innerWidth - W - 8));
-          const top =
-            p.native.clientY + 12 + h > window.innerHeight - 8
-              ? Math.max(8, p.native.clientY - h - 12) // 아래 공간 부족 → 탭 지점 위로
-              : p.native.clientY + 12; // 기본: 탭 지점 바로 아래
-          cluster.value = { events: atPoint, top, left };
+          clusterTap = { x: p.native.clientX, y: p.native.clientY };
+          // 측정 전에는 숨긴 채로 렌더 — 없으면 잘못된 위치에 한 프레임 깜빡인다
+          clusterStyle.value = { visibility: 'hidden', top: '0px', left: '0px' };
+          cluster.value = { events: atPoint };
+          nextTick(() => positionCluster());
           return;
         }
       }
     }
     emit('eventClick', p.event);
+  }
+
+  /** 실제 렌더 크기를 재서 뒤집기·클램프를 결정한다(행 높이 40px 가정 추정식은 실제와 어긋날 수 있다) */
+  function positionCluster(): void {
+    const box = clusterEl.value?.getBoundingClientRect();
+    const tap = clusterTap;
+    if (!box || !tap) return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const left = Math.max(CLUSTER_MARGIN, Math.min(tap.x - box.width / 2, vw - box.width - CLUSTER_MARGIN));
+    const top =
+      tap.y + CLUSTER_GAP + box.height > vh - CLUSTER_MARGIN
+        ? Math.max(CLUSTER_MARGIN, tap.y - box.height - CLUSTER_GAP) // 아래 공간 부족 → 탭 지점 위로
+        : tap.y + CLUSTER_GAP; // 기본: 탭 지점 바로 아래
+
+    clusterStyle.value = { top: `${top}px`, left: `${left}px` };
   }
   function onClusterRow(ev: CalEvent): void {
     cluster.value = null;
@@ -655,7 +672,7 @@
   /* 터치 겹침 클러스터 팝오버 */
   .tg-cluster {
     position: fixed;
-    z-index: 300;
+    z-index: var(--cal-popover-z, 1500);
     width: 248px;
     max-height: 320px;
     display: flex;

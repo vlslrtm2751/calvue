@@ -124,6 +124,26 @@ cal.value?.next();
 cal.value?.gotoDate(dayjs('2026-08-01'));
 ```
 
+### 슬롯
+
+| 슬롯 | slot prop | 설명 |
+| --- | --- | --- |
+| `#tooltip` | `{ event: CalEvent }` | 툴팁 내용 전체를 대체합니다. 제목까지 포함해 통째로 갈아끼우는 것이므로, 슬롯을 지정하지 않으면 `tooltipFields` 기반의 기존 툴팁이 그대로 렌더링됩니다 |
+
+```vue
+<CalCalendar :events="events">
+  <template #tooltip="{ event }">
+    <strong>{{ event.title }}</strong>
+    <div>{{ event.start.format('MM-DD HH:mm') }}</div>
+  </template>
+</CalCalendar>
+```
+
+슬롯 안에서도 바꿀 수 없는 것이 두 가지 있습니다:
+
+- 툴팁 컨테이너는 `pointer-events: none`입니다. 슬롯 안에 버튼 등 상호작용 요소를 넣어도 클릭을 받지 못합니다 — 호버 툴팁이라는 성격상 의도된 제약입니다.
+- 툴팁 컨테이너는 `max-width: 320px`로 고정되어 있습니다.
+
 ### CalOptions
 
 | 옵션 | 타입 | 기본값 | 설명 |
@@ -213,6 +233,15 @@ const selected = ref(new Date().toISOString());
 <CalCalendar :options="{ primaryColor: '#6750a4' }" />
 <CalMiniMonth :options="{ primaryColor: '#6750a4' }" />
 ```
+
+### CSS 변수
+
+| 변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `--cal-tooltip-z` | `10000` | 호버 툴팁의 `z-index` |
+| `--cal-popover-z` | `1500` | 월 `+N 더보기` 팝오버·터치 겹침 팝오버의 `z-index` |
+
+⚠️ 팝오버 2종과 툴팁은 모두 `<body>`로 teleport됩니다. 그래서 이 변수들은 캘린더를 감싸는 wrapper 엘리먼트가 아니라 **`:root`나 `body`에 지정해야** 합니다 — teleport된 뒤에는 wrapper가 더 이상 DOM 조상이 아니므로 wrapper에 지정한 값은 적용되지 않습니다.
 
 ## 로케일 (i18n)
 

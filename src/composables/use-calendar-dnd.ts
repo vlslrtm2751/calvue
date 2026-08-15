@@ -1,4 +1,6 @@
 import type { CalEvent } from '../types';
+import type { TimeWindow } from './use-event-layout';
+import { FULL_DAY_WINDOW } from './use-event-layout';
 import { isTouch } from './use-cal-device';
 import type { Dayjs } from 'dayjs';
 import { reactive } from 'vue';
@@ -36,7 +38,9 @@ export function useDragPreview() {
 export function useCalendarDnd(
   onDrop: (ev: CalEvent, deltaDays: number, deltaMinutes: number) => void,
   isEnabled: () => boolean = () => true,
-  onResize?: (ev: CalEvent, start: Dayjs, end: Dayjs) => void
+  onResize?: (ev: CalEvent, start: Dayjs, end: Dayjs) => void,
+  /** 시간 그리드가 그리는 시간대(자정 기준 분) — 포인터 위치를 시각으로 바꿀 때 쓴다 */
+  timeWindow: () => TimeWindow = () => FULL_DAY_WINDOW
 ) {
   const draggingKey = ref<string | null>(null);
   const resizingKey = ref<string | null>(null);
@@ -148,10 +152,12 @@ export function useCalendarDnd(
 
     // how far (in minutes) below the event's start the user grabbed, measured in the origin column
     let grabOffsetMin = 0;
+    const win = timeWindow();
+    const span = Math.max(1, win.end - win.start);
     const startCol = originEl?.closest<HTMLElement>('[data-cal-col]');
     if (startCol) {
       const r = startCol.getBoundingClientRect();
-      grabOffsetMin = ((downY - r.top) / r.height) * 1440 - origStartMin;
+      grabOffsetMin = win.start + ((downY - r.top) / r.height) * span - origStartMin;
     }
 
     let dropDays = 0;
@@ -167,8 +173,8 @@ export function useCalendarDnd(
       const col = el?.closest<HTMLElement>('[data-cal-col]');
       if (!col) return;
       const r = col.getBoundingClientRect();
-      let min = ((me.clientY - r.top) / r.height) * 1440 - grabOffsetMin;
-      min = Math.max(0, Math.min(1440 - SNAP, Math.round(min / SNAP) * SNAP));
+      let min = win.start + ((me.clientY - r.top) / r.height) * span - grabOffsetMin;
+      min = Math.max(win.start, Math.min(win.end - SNAP, Math.round(min / SNAP) * SNAP));
       dropStartMin = min;
       const colDate = col.dataset.calDate;
       if (colDate) dropDays = dayjs(colDate).startOf('day').diff(ev.start.startOf('day'), 'day');
@@ -297,10 +303,12 @@ export function useCalendarDnd(
         resizingKey.value = ev.key;
       }
       if (!originCol) return;
+      const win = timeWindow();
+      const span = Math.max(1, win.end - win.start);
       const r = originCol.getBoundingClientRect();
-      let min = ((me.clientY - r.top) / r.height) * 1440;
+      let min = win.start + ((me.clientY - r.top) / r.height) * span;
       min = Math.round(min / SNAP) * SNAP;
-      endMin = Math.max(startMin + SNAP, Math.min(1440, min)); // min 15-min duration, same day
+      endMin = Math.max(startMin + SNAP, Math.min(win.end, min)); // min 15-min duration, same day
       timePreview.active = true;
       timePreview.event = ev;
       timePreview.dateKey = ev.start.format('YYYY-MM-DD');

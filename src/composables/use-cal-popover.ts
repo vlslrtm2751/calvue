@@ -26,11 +26,15 @@ export function useCalPopoverDismiss(popoverEl: Ref<HTMLElement | null>, isOpen:
   // scroll 이벤트는 버블링하지 않지만 capture 단계에서는 window→target으로 전파된다.
   // 그래서 window 하나로 내부 스크롤 컨테이너와 페이지 스크롤을 모두 잡는다.
   // (팝오버가 position: fixed라 페이지가 스크롤되면 앵커와 분리된 채 화면에 남는다)
+  // 단, 팝오버 자체의 목록(.cal-month__popover-events / .tg-cluster__list) 스크롤은 제외한다 —
+  // 그건 사용자가 팝오버를 읽고 있다는 뜻이지 닫으라는 뜻이 아니다. pointerdown 쪽과 같은 가드.
   useEventListener(
     window,
     'scroll',
-    () => {
-      if (isOpen()) close();
+    (e: Event) => {
+      if (!isOpen()) return;
+      if (popoverEl.value?.contains(e.target as Node)) return;
+      close();
     },
     { capture: true }
   );

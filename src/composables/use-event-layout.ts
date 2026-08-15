@@ -1,4 +1,4 @@
-import type { CalEvent } from '../types';
+import type { CalEvent, EventOrder } from '../types';
 import type { Dayjs } from 'dayjs';
 
 export interface TimeBox {
@@ -13,15 +13,34 @@ export interface TimeBox {
 /** timed events occupy this % of the day column; the rest is a click/drag strip on the right */
 const COLUMN_USABLE_PCT = 98;
 
-export function layoutDay(events: CalEvent[], dayStart: Dayjs, overlap = true): TimeBox[] {
+/** 세로로 그리는 시간대(자정 기준 분). slotMinTime~slotMaxTime에 대응하며 기본은 하루 전체 */
+export interface TimeWindow {
+  start: number;
+  end: number;
+}
+
+export const FULL_DAY_WINDOW: TimeWindow = { start: 0, end: 1440 };
+
+export function layoutDay(
+  events: CalEvent[],
+  dayStart: Dayjs,
+  overlap = true,
+  win: TimeWindow = FULL_DAY_WINDOW,
+  order?: EventOrder
+): TimeBox[] {
+  const span = Math.max(1, win.end - win.start);
   const timed = events
     .filter((e) => !e.allDay)
-    .map((e) => {
-      const s = Math.max(0, e.start.diff(dayStart, 'minute'));
-      const en = Math.min(1440, e.end.diff(dayStart, 'minute'));
-      return { event: e, s, e: Math.max(en, s + 15) };
+    .map((e) => ({ event: e, from: e.start.diff(dayStart, 'minute'), to: e.end.diff(dayStart, 'minute') }))
+    // 창 밖의 일정은 그리지 않는다 — 클램프만 하면 경계에 납작한 상자가 남는다
+    .filter((b) => b.to > win.start && b.from < win.end)
+    .map((b) => {
+      const s = Math.max(win.start, b.from);
+      const en = Math.min(win.end, b.to);
+      return { event: b.event, s, e: Math.max(en, s + 15) };
     })
-    .sort((a, b) => a.s - b.s || b.e - a.e);
+    // 시작·끝이 같으면 컬럼 배정 순서가 조회 순서에 좌우된다 — order가 있으면 그걸로 가른다
+    .sort((a, b) => a.s - b.s || b.e - a.e || (order ? order(a.event, b.event) : 0));
 
   const out: TimeBox[] = [];
   let cluster: typeof timed = [];
@@ -49,8 +68,8 @@ export function layoutDay(events: CalEvent[], dayStart: Dayjs, overlap = true): 
     for (const { it, col } of placed) {
       const box: TimeBox = {
         event: it.event,
-        topPct: (it.s / 1440) * 100,
-        heightPct: ((it.e - it.s) / 1440) * 100,
+        topPct: ((it.s - win.start) / span) * 100,
+        heightPct: ((it.e - it.s) / span) * 100,
         leftPct: cascade ? (col * cascadeW) / 2 : (col / n) * COLUMN_USABLE_PCT,
         widthPct: cascade ? cascadeW : (1 / n) * COLUMN_USABLE_PCT
       };

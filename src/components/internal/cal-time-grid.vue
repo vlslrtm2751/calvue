@@ -58,7 +58,9 @@
       <div class="tg-body" :style="gridCols">
         <!-- Hour gutter -->
         <div class="tg-gutter">
-          <div class="tg-hour" v-for="h in HOURS" :key="h">{{ h > 0 ? `${String(h).padStart(2, '0')}:00` : '' }}</div>
+          <div class="tg-hour" v-for="(h, i) in HOURS" :key="h">{{
+            i > 0 ? `${String(h).padStart(2, '0')}:00` : ''
+          }}</div>
         </div>
 
         <!-- Per-day columns -->
@@ -72,10 +74,19 @@
           @pointerdown="(e) => startTimeSelect(day, e)"
           data-cal-col>
           <!-- Now indicator -->
-          <div class="tg-nowline" v-if="nowIndicator && day.isSame(today, 'day')" :style="{ top: nowPct + '%' }"></div>
+          <div
+            class="tg-nowline"
+            v-if="nowIndicator && nowInWindow && day.isSame(today, 'day')"
+            :style="{ top: nowPct + '%' }"></div>
           <!-- Timed events -->
           <cal-time-event
-            v-for="box in layoutDay(timedEventsFor(day), day.startOf('day'), slotEventOverlap !== false)"
+            v-for="box in layoutDay(
+              timedEventsFor(day),
+              day.startOf('day'),
+              slotEventOverlap !== false,
+              timeWindow,
+              eventOrder
+            )"
             :box="box"
             :key="box.event.key"
             :resizable-end="
@@ -98,8 +109,8 @@
             class="tg-preview"
             v-if="preview.active && preview.event && preview.dateKey === day.format('YYYY-MM-DD')"
             :style="{
-              top: `${(preview.startMin / 1440) * 100}%`,
-              height: `${(preview.durationMin / 1440) * 100}%`,
+              top: `${pctOf(preview.startMin)}%`,
+              height: `${(preview.durationMin / winSpan) * 100}%`,
               backgroundColor: preview.event.color
             }">
             <div class="tg-preview__title">{{ preview.event.title }}</div>
@@ -149,6 +160,7 @@
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
   import type { CalEvent, CalEventChange, CalBusinessHours, EventOrder } from '../../types';
+  import type { TimeWindow } from '../../composables/use-event-layout';
   import { layoutDay } from '../../composables/use-event-layout';
   import { layoutDayGridRow, eventEndDay } from '../../composables/use-daygrid-layout';
   import { useCalendarDnd, useDragPreview } from '../../composables/use-calendar-dnd';
@@ -156,8 +168,12 @@
   import { isTouch } from '../../composables/use-cal-device';
   import { useCalI18n } from '../../composables/use-cal-i18n';
 
-  const HOURS = Array.from({ length: 24 }, (_, i) => i);
   const HOUR_H_PX = 48;
+
+  function toMinutes(hhmm: string | undefined, fallback: number): number {
+    const [h, m] = (hhmm ?? '').split(':').map(Number);
+    return Number.isFinite(h) ? (h || 0) * 60 + (m || 0) : fallback;
+  }
 
   const props = defineProps<{
     days: Dayjs[];
@@ -185,6 +201,24 @@
 
   const m = useCalI18n();
 
+  // 세로로 그리는 시간대. 기본은 하루 전체(0~1440)이고, 그때의 계산은 자정 기준 분과 같다.
+  const timeWindow = computed<TimeWindow>(() => {
+    const start = Math.max(0, Math.min(1380, toMinutes(props.slotMinTime, 0)));
+    const end = Math.max(start + 60, Math.min(1440, toMinutes(props.slotMaxTime, 1440)));
+    return { start, end };
+  });
+  const winSpan = computed(() => timeWindow.value.end - timeWindow.value.start);
+  /** 시간 눈금 — 창의 시작 시부터 끝 시까지 */
+  const HOURS = computed(() => {
+    const from = Math.floor(timeWindow.value.start / 60);
+    const to = Math.ceil(timeWindow.value.end / 60);
+    return Array.from({ length: to - from }, (_, i) => from + i);
+  });
+  /** 자정 기준 분 → 컬럼 안 세로 위치(%) */
+  function pctOf(minute: number): number {
+    return ((minute - timeWindow.value.start) / winSpan.value) * 100;
+  }
+
   const {
     draggingKey,
     resizingKey,
@@ -202,14 +236,16 @@
         end: ev.end.add(deltaDays, 'day').add(deltaMinutes, 'minute')
       }),
     () => props.editable !== false,
-    (ev, start, end) => emit('eventResize', { ev, start, end })
+    (ev, start, end) => emit('eventResize', { ev, start, end }),
+    () => timeWindow.value
   );
 
   const preview = useDragPreview();
 
   const { startMonthSelect, startTimeSelect, consumeSelect } = useCalendarSelect(
     (range) => emit('select', range),
-    () => props.selectable !== false
+    () => props.selectable !== false,
+    () => timeWindow.value
   );
   const selectPreview = useSelectPreview();
 
@@ -240,13 +276,14 @@
     if (!p.active || p.mode !== 'time' || !p.startKey || !p.endKey || key < p.startKey || key > p.endKey) {
       return { show: false, top: 0, height: 0, label: '' };
     }
-    const segStart = key === p.startKey ? p.startMin : 0;
-    const segEnd = key === p.endKey ? p.endMin : 1440;
+    const { start: winStart, end: winEnd } = timeWindow.value;
+    const segStart = Math.max(winStart, key === p.startKey ? p.startMin : winStart);
+    const segEnd = Math.min(winEnd, key === p.endKey ? p.endMin : winEnd);
     if (segEnd <= segStart) return { show: false, top: 0, height: 0, label: '' };
     return {
       show: true,
-      top: (segStart / 1440) * 100,
-      height: ((segEnd - segStart) / 1440) * 100,
+      top: pctOf(segStart),
+      height: ((segEnd - segStart) / winSpan.value) * 100,
       label: key === p.startKey ? `${fmtMin(p.startMin)}–${fmtMin(p.endMin)}` : ''
     };
   }
@@ -255,7 +292,9 @@
 
   // grid-template-columns: var(--cal-gutter, 56px) repeat(N, 1fr)
   const gridCols = computed(() => ({
-    gridTemplateColumns: `var(--cal-gutter, 56px) repeat(${props.days.length}, 1fr)`
+    gridTemplateColumns: `var(--cal-gutter, 56px) repeat(${props.days.length}, 1fr)`,
+    // 컬럼 높이는 그리는 시간 수를 따른다 — 눈금(.tg-hour)과 어긋나지 않게
+    '--tg-hours': String(HOURS.value.length)
   }));
 
   // All-day spanning layout
@@ -268,10 +307,9 @@
   const canDragAllDay = computed(() => props.days.length > 1);
 
   // Now indicator top %
-  const nowPct = computed(() => {
-    const now = props.today; // 반응형(cal-calendar useNow) → 1분마다 라인 위치 갱신
-    return (now.diff(now.startOf('day'), 'minute') / 1440) * 100;
-  });
+  const nowMin = computed(() => props.today.diff(props.today.startOf('day'), 'minute')); // 반응형(useNow) → 1분마다 갱신
+  const nowInWindow = computed(() => nowMin.value >= timeWindow.value.start && nowMin.value <= timeWindow.value.end);
+  const nowPct = computed(() => pctOf(nowMin.value));
 
   function isBizDay(day: Dayjs): boolean {
     if (!props.businessHours) return false;
@@ -298,7 +336,7 @@
       const col = (p.native.currentTarget as HTMLElement | null)?.closest<HTMLElement>('[data-cal-col]');
       const colRect = col?.getBoundingClientRect();
       if (colRect) {
-        const tapMin = ((p.native.clientY - colRect.top) / colRect.height) * 1440;
+        const tapMin = timeWindow.value.start + ((p.native.clientY - colRect.top) / colRect.height) * winSpan.value;
         const tapTime = day.startOf('day').add(tapMin, 'minute');
         const atPoint = timedEventsFor(day)
           .filter((e) => !e.start.isAfter(tapTime) && e.end.isAfter(tapTime)) // start ≤ 탭시각 < end
@@ -352,9 +390,10 @@
 
     const col = event.currentTarget as HTMLElement;
     const rect = col.getBoundingClientRect();
-    const rawMins = ((event.clientY - rect.top) / rect.height) * 1440;
+    const { start: winStart, end: winEnd } = timeWindow.value;
+    const rawMins = winStart + ((event.clientY - rect.top) / rect.height) * winSpan.value;
     // FLOOR to 30-min boundary: top half of hour → :00, bottom half → :30
-    const min = Math.max(0, Math.min(1440 - 30, Math.floor(rawMins / 30) * 30));
+    const min = Math.max(winStart, Math.min(winEnd - 30, Math.floor(rawMins / 30) * 30));
     const start = day.startOf('day').add(min, 'minute');
     const end = start.add(60, 'minute');
     emit('select', { start, end, allDay: false });
@@ -362,8 +401,8 @@
 
   onMounted(() => {
     if (scrollEl.value) {
-      const [h, m] = (props.scrollTime ?? '07:00').split(':').map(Number);
-      scrollEl.value.scrollTop = (((h || 0) * 60 + (m || 0)) / 60) * HOUR_H_PX;
+      const scrollMin = toMinutes(props.scrollTime, 420); // 420 = 07:00, 기존 기본값과 동일
+      scrollEl.value.scrollTop = Math.max(0, ((scrollMin - timeWindow.value.start) / 60) * HOUR_H_PX);
     }
   });
 </script>
@@ -490,7 +529,7 @@
   .tg-col {
     position: relative;
     border-right: 1px solid var(--cal-line-soft);
-    height: calc(24 * var(--cal-hour-h, 48px));
+    height: calc(var(--tg-hours, 24) * var(--cal-hour-h, 48px));
     background-image: repeating-linear-gradient(
       to bottom,
       transparent 0,

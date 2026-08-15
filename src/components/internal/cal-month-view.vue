@@ -1,5 +1,5 @@
 <template>
-  <div class="cal-month" :style="{ '--cal-cols': colCount }" @keydown.esc="closePopover" ref="calMonthEl">
+  <div class="cal-month" :style="{ '--cal-cols': colCount }" ref="calMonthEl">
     <!-- Day of week header -->
     <div class="cal-month__dow">
       <div
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Weeks grid -->
-    <div class="cal-month__weeks">
+    <div class="cal-month__weeks" ref="weeksEl">
       <div
         class="cal-month__week"
         v-for="(week, wi) in weeks"
@@ -112,13 +112,7 @@
     </div>
 
     <!-- Popover — single instance at .cal-month root, positioned via absolute offset against this container -->
-    <div
-      class="cal-month__popover"
-      v-if="popoverDay"
-      :style="popoverStyle"
-      @click.stop
-      @keydown.esc="closePopover"
-      ref="popoverEl">
+    <div class="cal-month__popover" v-if="popoverDay" :style="popoverStyle" @click.stop ref="popoverEl">
       <div class="cal-month__popover-header">
         <span class="cal-month__popover-date">{{ m.popoverDate(popoverDay) }}</span>
         <button class="cal-month__popover-close" @click="closePopover" :aria-label="m.close">×</button>
@@ -149,6 +143,7 @@
   import { useCalendarSelect, useSelectPreview } from '../../composables/use-calendar-select';
   import { useCalI18n } from '../../composables/use-cal-i18n';
   import { useCalTooltip } from '../../composables/use-cal-tooltip';
+  import { useCalPopoverDismiss } from '../../composables/use-cal-popover';
 
   const props = defineProps<{
     weeks: Dayjs[][];
@@ -291,6 +286,7 @@
   const POPOVER_H = 300;
 
   const calMonthEl = ref<HTMLElement | null>(null);
+  const weeksEl = ref<HTMLElement | null>(null);
   const popoverEl = ref<HTMLElement | null>(null);
   const popoverDay = ref<Dayjs | null>(null);
   const popoverStyle = ref<Record<string, string>>({});
@@ -336,12 +332,7 @@
     closePopover();
   }
 
-  // Close when clicking outside the popover element itself.
-  // Because the +N trigger uses @click.stop, opening won't immediately self-close.
-  // Clicking any other cell (outside the popover) will now correctly close it.
-  onClickOutside(popoverEl, () => {
-    closePopover();
-  });
+  useCalPopoverDismiss(popoverEl, () => popoverDay.value !== null, closePopover, weeksEl);
 </script>
 
 <style scoped>

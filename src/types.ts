@@ -76,6 +76,7 @@ export interface CalBusinessHours {
 
 /** 부모 페이지가 주입하는 공개 이벤트 입력 타입(느슨). cal-calendar가 CalEvent로 정규화 */
 export interface CalEventInput {
+  // id, source, and the event's start time combined must be unique — colliding combinations create duplicate render keys
   id: string;
   title: string;
   start: string | Date | Dayjs;

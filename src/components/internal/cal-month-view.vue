@@ -549,6 +549,18 @@
 
   /* Popover */
   .cal-month__popover {
+    /* Teleport로 <body> 아래로 나가 .cal / .cal-month의 토큰·글꼴을 상속받지 못한다 — 여기서 자급한다 */
+    --cal-line: #e5e7eb;
+    --cal-line-soft: #f1f3f5;
+    --cal-ink: #1f2937;
+    --cal-muted: #6b7280;
+    color: var(--cal-ink);
+    font-family:
+      'Pretendard',
+      'Apple SD Gothic Neo',
+      system-ui,
+      -apple-system,
+      sans-serif;
     position: fixed;
     z-index: var(--cal-popover-z, 1500);
     width: 220px;

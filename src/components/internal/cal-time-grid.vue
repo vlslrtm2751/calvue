@@ -1,7 +1,7 @@
 <template>
   <div class="tg">
     <!-- Header row -->
-    <div class="tg-head" :style="gridCols">
+    <div class="tg-head" :style="headCols">
       <div class="tg-corner"></div>
       <div class="tg-dcol" v-for="day in days" :class="dayHeadClass(day)" :key="day.format('YYYY-MM-DD')">
         <div class="tg-dn" :style="dayNameStyle(day)">{{ m.weekdaysShort[day.day()] }}</div>
@@ -10,7 +10,7 @@
     </div>
 
     <!-- All-day row -->
-    <div class="tg-allday">
+    <div class="tg-allday" :style="allDayCols">
       <div class="tg-corner tg-corner--allday">{{ m.allDay }}</div>
       <div class="tg-allday__grid" :style="allDayGridStyle">
         <!-- per-day cells (behind the bars): click → 1-day all-day, drag → multi-day all-day,
@@ -298,6 +298,20 @@
     '--tg-hours': String(HOURS.value.length)
   }));
 
+  // .tg-body만 .tg-scroll 안이라 스크롤바 폭만큼 좁다. 헤더·종일 행은 밖이라 전체 폭을 쓰므로,
+  // 같은 repeat(N, 1fr)을 서로 다른 총폭에 나누면 컬럼 경계가 조금씩 벌어진다(주 뷰에서 드러남).
+  // 스크롤바 폭을 헤더·종일 행의 padding-right로 빼서 셋을 같은 폭 위에 올린다.
+  // 오버레이 스크롤바 환경에서는 0이라 아무것도 바뀌지 않는다.
+  const scrollbarW = ref<number>(0);
+
+  function measureScrollbar(): void {
+    const el = scrollEl.value;
+    scrollbarW.value = el ? el.offsetWidth - el.clientWidth : 0;
+  }
+
+  const headCols = computed(() => ({ ...gridCols.value, paddingRight: `${scrollbarW.value}px` }));
+  const allDayCols = computed(() => ({ paddingRight: `${scrollbarW.value}px` }));
+
   // All-day spanning layout
   const allDayEvents = computed(() => props.events.filter((e) => e.allDay));
   const allDayLayout = computed(() => layoutDayGridRow(props.days, allDayEvents.value, Infinity, props.eventOrder));
@@ -400,7 +414,10 @@
     emit('select', { start, end, allDay: false });
   }
 
+  useResizeObserver(scrollEl, measureScrollbar);
+
   onMounted(() => {
+    measureScrollbar();
     if (scrollEl.value) {
       const scrollMin = toMinutes(props.scrollTime, 420); // 420 = 07:00, 기존 기본값과 동일
       scrollEl.value.scrollTop = Math.max(0, ((scrollMin - timeWindow.value.start) / 60) * HOUR_H_PX);

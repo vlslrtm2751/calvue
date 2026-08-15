@@ -7,7 +7,7 @@
           <span class="big">{{ group.dayNum }}</span>
           {{ group.weekday }}<template v-if="group.isToday"> · {{ m.todaySuffix }}</template>
         </div>
-        <div>
+        <div class="list-evts">
           <div
             class="list-evt"
             v-for="ev in group.events"
@@ -93,10 +93,14 @@
   }
   .list-day {
     display: grid;
-    grid-template-columns: 96px 1fr;
+    /* minmax(0, 1fr): auto 최소값(=제목 폭)이 남으면 트랙이 제목 길이만큼 늘어나 가로 스크롤이 생긴다 */
+    grid-template-columns: 64px minmax(0, 1fr);
     gap: 12px;
     padding: 12px 0;
     border-bottom: 1px solid var(--cal-line-soft);
+  }
+  .list-evts {
+    min-width: 0;
   }
   /* month section header — sticks to the top while scrolling the agenda */
   .list-month {
@@ -151,12 +155,13 @@
     flex: none;
   }
   .time {
-    width: 110px;
+    width: 100px;
     font-size: 12.5px;
     color: var(--cal-muted);
     flex: none;
   }
   .title {
+    min-width: 0;
     font-size: 13.5px;
     color: var(--cal-ink);
     overflow: hidden;

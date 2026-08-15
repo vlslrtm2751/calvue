@@ -1,3 +1,5 @@
+import type { TimeWindow } from './use-event-layout';
+import { FULL_DAY_WINDOW } from './use-event-layout';
 import { isTouch } from './use-cal-device';
 import type { Dayjs } from 'dayjs';
 import { reactive } from 'vue';
@@ -31,7 +33,9 @@ const SNAP = 30; // 주/일 선택은 30분 스냅
 
 export function useCalendarSelect(
   onSelect: (range: { start: Dayjs; end: Dayjs; allDay: boolean }) => void,
-  isEnabled: () => boolean = () => true
+  isEnabled: () => boolean = () => true,
+  /** 시간 그리드가 그리는 시간대(자정 기준 분) — 포인터 위치를 시각으로 바꿀 때 쓴다 */
+  timeWindow: () => TimeWindow = () => FULL_DAY_WINDOW
 ) {
   const didSelect = ref<boolean>(false);
 
@@ -118,10 +122,12 @@ export function useCalendarSelect(
     const downX = e.clientX;
     const downY = e.clientY;
 
+    const win = timeWindow();
+    const span = Math.max(1, win.end - win.start);
     const minAt = (clientY: number, rect: DOMRect, round: boolean): number => {
-      const raw = ((clientY - rect.top) / rect.height) * 1440;
+      const raw = win.start + ((clientY - rect.top) / rect.height) * span;
       const snapped = (round ? Math.round(raw / SNAP) : Math.floor(raw / SNAP)) * SNAP;
-      return Math.max(0, Math.min(1440, snapped));
+      return Math.max(win.start, Math.min(win.end, snapped));
     };
 
     const anchorMin = minAt(downY, anchorRect, false); // 누른 슬롯(floor)

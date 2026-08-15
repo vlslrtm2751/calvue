@@ -1,5 +1,5 @@
 <template>
-  <div class="cal-month" :style="{ '--cal-cols': colCount }" ref="calMonthEl">
+  <div class="cal-month" :style="{ '--cal-cols': colCount }">
     <!-- Day of week header -->
     <div class="cal-month__dow">
       <div
@@ -12,7 +12,7 @@
     </div>
 
     <!-- Weeks grid -->
-    <div class="cal-month__weeks" ref="weeksEl">
+    <div class="cal-month__weeks">
       <div
         class="cal-month__week"
         v-for="(week, wi) in weeks"
@@ -289,8 +289,6 @@
   /** 앵커(+N 칸)와 팝오버 사이 간격 */
   const POPOVER_GAP = 4;
 
-  const calMonthEl = ref<HTMLElement | null>(null);
-  const weeksEl = ref<HTMLElement | null>(null);
   const popoverEl = ref<HTMLElement | null>(null);
   const popoverDay = ref<Dayjs | null>(null);
   const popoverStyle = ref<Record<string, string>>({});
@@ -336,7 +334,7 @@
     closePopover();
   }
 
-  useCalPopoverDismiss(popoverEl, () => popoverDay.value !== null, closePopover, weeksEl);
+  useCalPopoverDismiss(popoverEl, () => popoverDay.value !== null, closePopover);
 </script>
 
 <style scoped>
@@ -353,7 +351,7 @@
     grid-template-rows: auto 1fr;
     height: 100%;
     color: var(--cal-ink);
-    position: relative; /* 내부 절대배치 요소들의 기준 컨테이너 */
+    position: relative; /* 방어적으로 유지 — 현재 절대배치 자식 중 이 컨테이너를 기준으로 삼는 것은 없다 */
   }
 
   /* Day-of-week header */

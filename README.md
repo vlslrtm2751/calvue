@@ -138,8 +138,8 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 | `showTooltip` | `boolean` | `true` | 이벤트 호버 툴팁 |
 | `tooltipFields` | `('creator' \| 'start' \| 'end' \| 'description')[]` | 전부 | 툴팁에 표시할 필드와 순서. `creator`·`description`은 이벤트의 `extendedProps.creator`·`extendedProps.description`에서 읽습니다 |
 | `businessHours` | `{ daysOfWeek: number[]; startTime: string; endTime: string } \| null` | `{ daysOfWeek: [1,2,3,4,5], startTime: '00:00', endTime: '24:00' }` | 업무시간 영역 표시(주/일 뷰 음영). `null`이면 비활성 |
-| `slotMinTime` | `string` (`'HH:mm'`) | `'00:00'` | 시간 그리드 표시 시작 시각 |
-| `slotMaxTime` | `string` (`'HH:mm'`) | `'24:00'` | 시간 그리드 표시 종료 시각 |
+| `slotMinTime` | `string` (`'HH:mm'`) | `'00:00'` | 시간 그리드 표시 시작 시각. ⚠️ 정각(`'08:00'`, `'20:00'`)은 정상 렌더링; 비정각(`'08:30'`)은 그리드라인 정렬 미정의 |
+| `slotMaxTime` | `string` (`'HH:mm'`) | `'24:00'` | 시간 그리드 표시 종료 시각. ⚠️ 정각(`'08:00'`, `'20:00'`)은 정상 렌더링; 비정각(`'08:30'`)은 그리드라인 정렬 미정의 |
 | `slotDuration` | `string` (`'HH:mm'`) | `'01:00'` | 시간 그리드 격자 간격 (`'00:30'`이면 30분 격자) |
 | `scrollTime` | `string` (`'HH:mm'`) | `'07:00'` | 주/일 뷰 진입 시 스크롤 시작 시각 |
 | `nowIndicator` | `boolean` | `true` | 현재시각 라인 |

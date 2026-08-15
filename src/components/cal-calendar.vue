@@ -79,7 +79,7 @@
   import type { CalEvent, CalEventChange, CalEventInput, CalOptions, CalRange, CalView } from '../types';
   import { useCalendarGrid } from '../composables/use-calendar-grid';
   import { normalizeEvent } from '../normalize';
-  import { useCalTooltip } from '../composables/use-cal-tooltip';
+  import { provideCalTooltip } from '../composables/use-cal-tooltip';
   import { isTouch } from '../composables/use-cal-device';
   import { resolveMessages } from '../i18n/messages';
   import { CAL_I18N } from '../composables/use-cal-i18n';
@@ -156,7 +156,7 @@
     return Math.max(-SWIPE_CAP, Math.min(SWIPE_CAP, -lengthX.value * 0.55));
   });
 
-  const tip = useCalTooltip();
+  const tip = provideCalTooltip();
   watch(
     () => opts.value.showTooltip,
     (v) => tip.setEnabled(v),

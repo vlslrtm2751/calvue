@@ -393,7 +393,7 @@
     cluster.value = null;
     if (ev.interactive !== false) emit('eventClick', ev);
   }
-  useCalPopoverDismiss(clusterEl, () => cluster.value !== null, () => (cluster.value = null), scrollEl);
+  useCalPopoverDismiss(clusterEl, () => cluster.value !== null, () => (cluster.value = null));
 
   function dayHeadClass(day: Dayjs): Record<string, boolean> {
     return {

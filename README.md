@@ -2,6 +2,8 @@
 
 월 / 주 / 일 / 목록 뷰와 드래그 이동·리사이즈·범위 선택을 지원하는 경량 Vue 3 캘린더 컴포넌트 라이브러리입니다.
 
+[![npm](https://img.shields.io/npm/v/calvue.svg)](https://www.npmjs.com/package/calvue)
+[![CI](https://github.com/vlslrtm2751/calvue/actions/workflows/ci.yml/badge.svg)](https://github.com/vlslrtm2751/calvue/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ![calvue 월 뷰 — 미니 먼스 위젯과 함께](docs/assets/screenshot-month.png)
@@ -100,9 +102,8 @@ function onEventClick(ev: CalEvent) {
 | `range-change` | `CalRange` (`{ start: Dayjs; end: Dayjs }`) | 마운트 직후 1회 + 표시 범위가 바뀔 때. 이 범위로 서버에서 일정을 조회하세요 |
 | `event-click` | `CalEvent` | 이벤트 클릭 시 (`interactive: false`인 이벤트 제외) |
 | `select` | `{ start: Dayjs; end: Dayjs; allDay: boolean }` | 빈 셀/시간대 드래그 선택 완료 시 (`selectable` 옵션 필요) |
-| `event-move` | `unknown` | 이벤트 드래그 이동 완료 시. 페이로드 타입이 아직 `unknown`으로 선언되어 있어 사용 전 소스 확인이 필요합니다 |
-| `event-resize` | `unknown` | 이벤트 리사이즈 완료 시. 위와 동일 |
-| `more` | `Dayjs` | **현재 미발생** — `+N 더보기` 클릭은 내장 팝오버로 처리되며 이 이벤트를 발화하는 코드가 없습니다 |
+| `event-move` | `CalEventChange` (`{ ev: CalEvent; start: Dayjs; end: Dayjs }`) | 이벤트 드래그 이동 완료 시. `start`·`end`는 이동 후의 새 값입니다(배타적 종료). 저장 후 `events`를 갱신하세요 |
+| `event-resize` | `CalEventChange` | 이벤트 리사이즈 완료 시. 페이로드 구성은 위와 동일 |
 
 ### 메서드 (템플릿 ref)
 
@@ -128,7 +129,6 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 | 옵션 | 타입 | 기본값 | 설명 |
 | --- | --- | --- | --- |
 | `views` | `CalView[]` | `['day','week','month','list']` | 툴바에 노출할 뷰 필터 (표시 순서는 일·주·월·목록 고정) |
-| `headerToolbar` | `{ left; center; right }` | `{ left: 'prev,next today', center: 'title', right: 'day,week,month,list' }` | **현재 미적용** — 툴바 레이아웃은 고정입니다 |
 | `locale` | `string` | `'ko'` | UI 문자열·날짜 포맷 로케일. `'ko'`·`'en'` 내장, 그 외는 `messages`로 공급 ([로케일](#로케일-i18n) 참조) |
 | `messages` | `Partial<CalMessages>` | — | 선택한 로케일 카탈로그 위에 키 단위로 얕게 병합하는 오버라이드 |
 | `primaryColor` | `string` | `'#1976d2'` | 강조색. `--cal-primary` CSS 변수로 주입됩니다 |
@@ -167,7 +167,6 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 | `editable` | `boolean` | `false` | 드래그 이동·리사이즈 대상 여부 (옵션 `editable`도 `true`여야 동작) |
 | `interactive` | `boolean` | `true` | `false`면 표시 전용 — 클릭·툴팁·드래그가 비활성화됩니다 |
 | `source` | `string` | `'cal'` | 호출자가 정의하는 출처 문자열. 렌더 키 생성에 사용됩니다 |
-| `rrule` | `string` | — | **현재 미적용** — 값이 보존만 되고 반복 일정 전개 로직이 없습니다 |
 | `extendedProps` | `Record<string, unknown>` | — | 임의 데이터. 툴팁의 `creator`·`description`이 여기서 읽힙니다 |
 
 ### CalEvent (콜백 수신 타입)

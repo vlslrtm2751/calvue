@@ -148,7 +148,7 @@
 
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
-  import type { CalEvent, CalBusinessHours, EventOrder } from '../../types';
+  import type { CalEvent, CalEventChange, CalBusinessHours, EventOrder } from '../../types';
   import { layoutDay } from '../../composables/use-event-layout';
   import { layoutDayGridRow, eventEndDay } from '../../composables/use-daygrid-layout';
   import { useCalendarDnd, useDragPreview } from '../../composables/use-calendar-dnd';
@@ -179,8 +179,8 @@
   const emit = defineEmits<{
     eventClick: [CalEvent];
     select: [{ start: Dayjs; end: Dayjs; allDay: boolean }];
-    eventMove: [unknown];
-    eventResize: [unknown];
+    eventMove: [CalEventChange];
+    eventResize: [CalEventChange];
   }>();
 
   const m = useCalI18n();

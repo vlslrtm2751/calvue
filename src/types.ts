@@ -20,9 +20,14 @@ export interface CalEvent {
   editable: boolean;
   /** 클릭·툴팁 등 상호작용 허용 여부 (기본 true). false면 표시만 되고 클릭/툴팁이 동작하지 않음 */
   interactive?: boolean;
-  /** 마스터 이벤트의 RRULE (있으면 반복 일정) */
-  rrule?: string;
   extendedProps?: Record<string, unknown>;
+}
+
+/** event-move / event-resize 페이로드. start·end는 변경 후의 새 값 (end는 배타적 종료). */
+export interface CalEventChange {
+  ev: CalEvent;
+  start: Dayjs;
+  end: Dayjs;
 }
 
 /** 로케일별 UI 문자열 + 요일 배열 + 날짜/시간 포맷터. 내장 ko/en 카탈로그가 구현한다. */
@@ -82,7 +87,6 @@ export interface CalEventInput {
   interactive?: boolean; // 기본 true. false면 클릭/툴팁 비활성(표시만)
   /** 호출자가 정의하는 이벤트 출처 문자열 (기본 'cal') */
   source?: string;
-  rrule?: string;
   extendedProps?: Record<string, unknown>;
 }
 
@@ -94,7 +98,6 @@ export type CalTooltipField = "creator" | "start" | "end" | "description";
 
 export interface CalOptions {
   views: CalView[]; // 표시할 뷰 (기본 ['day','week','month','list'])
-  headerToolbar: { left: string; center: string; right: string };
   locale: string; // 'ko' | 'en' 내장; 그 외는 messages로 공급 (기본 'ko')
   messages?: Partial<CalMessages>; // 선택: 선택 로케일 기본값 위 키 단위 얕은 병합
   /** 강조색. --cal-primary CSS 커스텀 프로퍼티로 주입됨 (기본 '#1976d2') */

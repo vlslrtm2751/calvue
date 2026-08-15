@@ -42,7 +42,6 @@
           @event-click="(e) => emit('eventClick', e)"
           @event-move="(p) => emit('eventMove', p)"
           @event-resize="(p) => emit('eventResize', p)"
-          @more="(d) => emit('more', d)"
           @select="(r) => emit('select', r)" />
         <cal-list-view
           v-else-if="view === 'list'"
@@ -77,7 +76,7 @@
 
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
-  import type { CalEvent, CalEventInput, CalOptions, CalRange, CalView } from '../types';
+  import type { CalEvent, CalEventChange, CalEventInput, CalOptions, CalRange, CalView } from '../types';
   import { useCalendarGrid } from '../composables/use-calendar-grid';
   import { normalizeEvent } from '../normalize';
   import { useCalTooltip } from '../composables/use-cal-tooltip';
@@ -97,14 +96,12 @@
     rangeChange: [CalRange];
     eventClick: [CalEvent];
     select: [{ start: Dayjs; end: Dayjs; allDay: boolean }];
-    eventMove: [unknown];
-    eventResize: [unknown];
-    more: [Dayjs];
+    eventMove: [CalEventChange];
+    eventResize: [CalEventChange];
   }>();
 
   const DEFAULT_CAL_OPTIONS: CalOptions = {
     views: ['day', 'week', 'month', 'list'],
-    headerToolbar: { left: 'prev,next today', center: 'title', right: 'day,week,month,list' },
     locale: 'ko',
     primaryColor: '#1976d2',
     firstDay: 0,

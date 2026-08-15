@@ -16,7 +16,6 @@ export function normalizeEvent(input: CalEventInput, index = 0): CalEvent {
     color: (input.color ?? '#409eff').slice(0, 7),
     editable: input.editable ?? false,
     interactive: input.interactive,
-    rrule: input.rrule,
     extendedProps: input.extendedProps
   };
 }

@@ -167,6 +167,7 @@
   import { useCalendarSelect, useSelectPreview } from '../../composables/use-calendar-select';
   import { isTouch } from '../../composables/use-cal-device';
   import { useCalI18n } from '../../composables/use-cal-i18n';
+  import { useCalPopoverDismiss } from '../../composables/use-cal-popover';
 
   const HOUR_H_PX = 48;
 
@@ -375,7 +376,7 @@
     cluster.value = null;
     if (ev.interactive !== false) emit('eventClick', ev);
   }
-  onClickOutside(clusterEl, () => (cluster.value = null));
+  useCalPopoverDismiss(clusterEl, () => cluster.value !== null, () => (cluster.value = null), scrollEl);
 
   function dayHeadClass(day: Dayjs): Record<string, boolean> {
     return {

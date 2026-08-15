@@ -49,6 +49,7 @@
     left: `${props.box.leftPct}%`,
     width: `${props.box.widthPct}%`,
     background: props.box.event.color,
+    color: (props.box.event.extendedProps?.textColor as string | undefined) ?? '#fff',
     zIndex: props.box.zIndex
   }));
 </script>

@@ -111,25 +111,27 @@
       </div>
     </div>
 
-    <!-- Popover — single instance at .cal-month root, positioned via absolute offset against this container -->
-    <div class="cal-month__popover" v-if="popoverDay" :style="popoverStyle" @click.stop ref="popoverEl">
-      <div class="cal-month__popover-header">
-        <span class="cal-month__popover-date">{{ m.popoverDate(popoverDay) }}</span>
-        <button class="cal-month__popover-close" @click="closePopover" :aria-label="m.close">×</button>
-      </div>
-      <div class="cal-month__popover-events">
-        <div
-          class="cal-month__popover-row"
-          v-for="ev in eventsByDay(popoverDay)"
-          :class="{ 'cal-month__popover-row--static': ev.interactive === false }"
-          :key="ev.key"
-          @click="onPopoverEventClick(ev)">
-          <span class="cal-month__popover-dot" :style="{ backgroundColor: ev.color }" />
-          <span class="cal-month__popover-title">{{ ev.title }}</span>
-          <span class="cal-month__popover-time">{{ m.dayLabel(ev, popoverDay) }}</span>
+    <!-- Popover — .cal-swipe transform 밖으로 teleport(fixed를 뷰포트 기준으로), 위치는 실측 후 확정 -->
+    <Teleport to="body">
+      <div class="cal-month__popover" v-if="popoverDay" :style="popoverStyle" @click.stop ref="popoverEl">
+        <div class="cal-month__popover-header">
+          <span class="cal-month__popover-date">{{ m.popoverDate(popoverDay) }}</span>
+          <button class="cal-month__popover-close" @click="closePopover" :aria-label="m.close">×</button>
+        </div>
+        <div class="cal-month__popover-events">
+          <div
+            class="cal-month__popover-row"
+            v-for="ev in eventsByDay(popoverDay)"
+            :class="{ 'cal-month__popover-row--static': ev.interactive === false }"
+            :key="ev.key"
+            @click="onPopoverEventClick(ev)">
+            <span class="cal-month__popover-dot" :style="{ backgroundColor: ev.color }" />
+            <span class="cal-month__popover-title">{{ ev.title }}</span>
+            <span class="cal-month__popover-time">{{ m.dayLabel(ev, popoverDay) }}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -282,44 +284,46 @@
   }
 
   // --- +N Popover ---
-  const POPOVER_W = 220;
-  const POPOVER_H = 300;
+  /** 뷰포트 가장자리에서 유지할 최소 여백 */
+  const POPOVER_MARGIN = 8;
+  /** 앵커(+N 칸)와 팝오버 사이 간격 */
+  const POPOVER_GAP = 4;
 
   const calMonthEl = ref<HTMLElement | null>(null);
   const weeksEl = ref<HTMLElement | null>(null);
   const popoverEl = ref<HTMLElement | null>(null);
   const popoverDay = ref<Dayjs | null>(null);
   const popoverStyle = ref<Record<string, string>>({});
+  // 반응형일 필요 없음 — 렌더링에 쓰지 않고 위치 계산에만 쓴다
+  let popoverAnchor: DOMRect | null = null;
 
   function openPopover(day: Dayjs, event: MouseEvent) {
-    // Use the +N element itself as anchor (event.currentTarget)
-    const anchor = event.currentTarget as HTMLElement;
-    const anchorRect = anchor.getBoundingClientRect();
-    const parentRect = calMonthEl.value?.getBoundingClientRect();
-
-    if (anchorRect && parentRect) {
-      // Compute offset relative to the .cal-month container (which is position:relative)
-      let top = anchorRect.bottom - parentRect.top + 4;
-      let left = anchorRect.left - parentRect.left;
-
-      // Clamp right edge: shift left if popover would overflow container width
-      if (left + POPOVER_W > parentRect.width) {
-        left = Math.max(0, parentRect.width - POPOVER_W - 8);
-      }
-
-      // Clamp bottom edge: flip above anchor if popover would overflow container height
-      if (top + POPOVER_H > parentRect.height) {
-        const anchorTopRelative = anchorRect.top - parentRect.top;
-        top = Math.max(0, anchorTopRelative - POPOVER_H - 4);
-      }
-
-      popoverStyle.value = {
-        top: `${top}px`,
-        left: `${left}px`
-      };
-    }
-
+    popoverAnchor = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    // 측정 전에는 숨긴 채로 렌더 — 없으면 잘못된 위치에 한 프레임 깜빡인다
+    popoverStyle.value = { visibility: 'hidden', top: '0px', left: '0px' };
     popoverDay.value = day;
+    nextTick(() => positionPopover());
+  }
+
+  /** 실제 렌더 크기를 재서 뒤집기·클램프를 결정한다(하드코딩 추정치는 실제 높이와 맞지 않았다) */
+  function positionPopover() {
+    const box = popoverEl.value?.getBoundingClientRect();
+    const a = popoverAnchor;
+    if (!box || !a) return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // 기본: 앵커 왼쪽 정렬. 오른쪽으로 넘치면 뷰포트 안으로 당긴다
+    let left = a.left;
+    if (left + box.width > vw - POPOVER_MARGIN) left = vw - box.width - POPOVER_MARGIN;
+    if (left < POPOVER_MARGIN) left = POPOVER_MARGIN;
+
+    // 기본: 앵커 아래. 아래 공간이 부족하면 앵커 위로 뒤집는다
+    let top = a.bottom + POPOVER_GAP;
+    if (top + box.height > vh - POPOVER_MARGIN) top = a.top - box.height - POPOVER_GAP;
+    if (top < POPOVER_MARGIN) top = POPOVER_MARGIN;
+
+    popoverStyle.value = { top: `${top}px`, left: `${left}px` };
   }
 
   function closePopover() {
@@ -349,7 +353,7 @@
     grid-template-rows: auto 1fr;
     height: 100%;
     color: var(--cal-ink);
-    position: relative; /* popover's position:absolute resolves against this container */
+    position: relative; /* 내부 절대배치 요소들의 기준 컨테이너 */
   }
 
   /* Day-of-week header */
@@ -545,8 +549,8 @@
 
   /* Popover */
   .cal-month__popover {
-    position: absolute;
-    z-index: 200;
+    position: fixed;
+    z-index: var(--cal-popover-z, 1500);
     width: 220px;
     background: #fff;
     border: 1px solid var(--cal-line);

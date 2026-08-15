@@ -1,4 +1,5 @@
 import type { CalEvent, EventOrder } from '../types';
+import { defaultEventOrder } from './use-event-order';
 import type { Dayjs } from 'dayjs';
 
 export interface TimeBox {
@@ -26,7 +27,7 @@ export function layoutDay(
   dayStart: Dayjs,
   overlap = true,
   win: TimeWindow = FULL_DAY_WINDOW,
-  order?: EventOrder
+  order: EventOrder = defaultEventOrder
 ): TimeBox[] {
   const span = Math.max(1, win.end - win.start);
   const timed = events

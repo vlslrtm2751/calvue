@@ -20,7 +20,11 @@
     </div>
     <div class="cal-host" @mouseleave="tip.hide()" ref="host">
       <div class="cal-loadbar" v-if="loading" aria-hidden="true" />
-      <cal-tooltip :fields="opts.tooltipFields" />
+      <cal-tooltip :fields="opts.tooltipFields">
+        <template v-if="$slots.tooltip" #default="slotProps">
+          <slot name="tooltip" v-bind="slotProps" />
+        </template>
+      </cal-tooltip>
       <cal-drag-ghost />
       <div
         class="cal-swipe"
@@ -99,6 +103,9 @@
     eventMove: [CalEventChange];
     eventResize: [CalEventChange];
   }>();
+
+  /** 툴팁 내용 전체를 대체한다. 미지정 시 tooltipFields 기반 기본 툴팁이 렌더링된다. */
+  defineSlots<{ tooltip?(props: { event: CalEvent }): unknown }>();
 
   const DEFAULT_CAL_OPTIONS: CalOptions = {
     views: ['day', 'week', 'month', 'list'],

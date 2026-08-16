@@ -156,7 +156,7 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 | `weekends` | `boolean` | `true` | 주말 표시. `false`면 평일만 5컬럼으로 표시 |
 | `weekdayColors` | `Record<number, string>` | `{ 0: '#ef4444', 6: '#2563eb' }` | 요일(0=일~6=토)별 헤더·날짜 숫자 색 |
 | `showTooltip` | `boolean` | `true` | 이벤트 호버 툴팁 |
-| `tooltipFields` | `('creator' \| 'start' \| 'end' \| 'description')[]` | 전부 | 툴팁에 표시할 필드와 순서. `creator`·`description`은 이벤트의 `extendedProps.creator`·`extendedProps.description`에서 읽습니다 |
+| `tooltipFields` | `('creator' \| 'start' \| 'end' \| 'description')[]` | 전부 | **툴팁에** 표시할 필드와 순서. `creator`·`description`은 이벤트의 `extendedProps.creator`·`extendedProps.description`에서 읽습니다. 목록 뷰의 작성자 표시는 이 옵션의 영향을 받지 않습니다 ([`extendedProps`](#caleventinput) 참조) |
 | `businessHours` | `{ daysOfWeek: number[]; startTime: string; endTime: string } \| null` | `{ daysOfWeek: [1,2,3,4,5], startTime: '00:00', endTime: '24:00' }` | 업무시간 영역 표시(주/일 뷰 음영). `null`이면 비활성 |
 | `slotMinTime` | `string` (`'HH:mm'`) | `'00:00'` | 시간 그리드 표시 시작 시각. ⚠️ 정각(`'08:00'`, `'20:00'`)은 정상 렌더링; 비정각(`'08:30'`)은 그리드라인 정렬 미정의 |
 | `slotMaxTime` | `string` (`'HH:mm'`) | `'24:00'` | 시간 그리드 표시 종료 시각. ⚠️ 정각(`'08:00'`, `'20:00'`)은 정상 렌더링; 비정각(`'08:30'`)은 그리드라인 정렬 미정의 |
@@ -187,7 +187,14 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 | `editable` | `boolean` | `false` | 드래그 이동·리사이즈 대상 여부 (옵션 `editable`도 `true`여야 동작) |
 | `interactive` | `boolean` | `true` | `false`면 표시 전용 — 클릭·툴팁·드래그가 비활성화됩니다 |
 | `source` | `string` | `'cal'` | 호출자가 정의하는 출처 문자열. 렌더 키 생성에 사용됩니다 |
-| `extendedProps` | `Record<string, unknown>` | — | 임의 데이터. 툴팁의 `creator`·`description`이 여기서 읽힙니다 |
+| `extendedProps` | `Record<string, unknown>` | — | 임의 데이터. `creator`·`description`을 툴팁이, `creator`를 목록 뷰가 읽습니다 (아래 참조) |
+
+**`extendedProps.creator`는 문자열로 넣으세요.** 두 곳에서 읽히는데 표시 조건이 다릅니다:
+
+- **툴팁** — `tooltipFields`에 `'creator'`가 있을 때만 (기본값에는 있습니다)
+- **목록 뷰** — 제목 아래 캡션으로 **항상**. `tooltipFields`·`showTooltip`과 무관하며 끄는 옵션이 없습니다
+
+목록 뷰에는 툴팁이 없고 모바일에는 호버 자체가 없어, 작성자를 확인할 다른 경로가 없기 때문입니다. 값이 없는 일정은 그 행이 한 줄로 남습니다.
 
 ### CalEvent (콜백 수신 타입)
 

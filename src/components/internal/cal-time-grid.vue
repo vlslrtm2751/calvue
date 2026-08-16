@@ -13,6 +13,15 @@
     <div class="tg-allday" :style="allDayCols">
       <div class="tg-corner tg-corner--allday">{{ m.allDay }}</div>
       <div class="tg-allday__grid" :style="allDayGridStyle">
+        <!-- Today-focus background, painted before the drop layer: .tg-allday__cell (flex, inset,
+             gaps, radius) doesn't line up with the square full-bleed header/body overlay, so this
+             reuses allDayGridStyle to match their column edges instead. -->
+        <div class="tg-allday__bg" :style="allDayGridStyle" aria-hidden="true">
+          <div
+            v-for="day in days"
+            :class="{ 'tg-allday__bg-cell--focus': isFocusDay(day) }"
+            :key="day.format('YYYY-MM-DD')" />
+        </div>
         <!-- per-day cells (behind the bars): click → 1-day all-day, drag → multi-day all-day,
              and drop targets for horizontal drag of existing all-day events (model A). -->
         <div class="tg-allday__drops">
@@ -67,7 +76,7 @@
         <div
           class="tg-col"
           v-for="day in days"
-          :class="{ 'tg-col--biz': isBizDay(day) }"
+          :class="{ 'tg-col--biz': isBizDay(day), 'tg-col--focus': isFocusDay(day) }"
           :data-cal-date="day.format('YYYY-MM-DD')"
           :key="day.format('YYYY-MM-DD')"
           @click="onColClick($event, day)"
@@ -163,6 +172,7 @@
   import { isTouch } from '../../composables/use-cal-device';
   import { useCalI18n } from '../../composables/use-cal-i18n';
   import { useCalPopoverDismiss } from '../../composables/use-cal-popover';
+  import { useCalTodayFocus } from '../../composables/use-cal-today-focus';
 
   const HOUR_H_PX = 48;
 
@@ -178,6 +188,8 @@
     resizable?: boolean;
     events: CalEvent[];
     today: Dayjs;
+    todayFocused?: boolean;
+    focusSeq?: number;
     businessHours: CalBusinessHours | null;
     selectable?: boolean;
     slotMinTime: string;
@@ -399,9 +411,31 @@
     return {
       'tg-dcol--today': day.isSame(props.today, 'day'),
       'tg-dcol--sun': day.day() === 0,
-      'tg-dcol--sat': day.day() === 6
+      'tg-dcol--sat': day.day() === 6,
+      'tg-dcol--focus': isFocusDay(day)
     };
   }
+
+  function isFocusDay(day: Dayjs): boolean {
+    return !!props.todayFocused && day.isSame(props.today, 'day');
+  }
+
+  /**
+   * 현재 시각이 세로 중앙에 오도록 스크롤한다. onMounted의 scrollTime 이동은 한 번뿐이라
+   * 오후가 되면 현재시각 라인이 화면 밖에 있다.
+   *
+   * 현재 시각이 TimeWindow 밖이어도(예: slotMinTime='09:00'인데 지금 07시) 별도 분기가 필요 없다 —
+   * Math.max(0, ...)가 창 맨 위로, 브라우저의 최대 스크롤 제한이 창 맨 아래로 각각 클램프한다.
+   */
+  function scrollToToday(behavior: ScrollBehavior): void {
+    const host = scrollEl.value;
+    if (!host) return;
+    if (!props.days.some((d) => d.isSame(props.today, 'day'))) return; // 오늘이 표시 범위 밖
+    const nowTop = ((nowMin.value - timeWindow.value.start) / 60) * HOUR_H_PX;
+    host.scrollTo({ top: Math.max(0, nowTop - host.clientHeight / 2), behavior });
+  }
+
+  useCalTodayFocus(toRef(props, 'focusSeq'), scrollToToday);
 
   function dayNameStyle(day: Dayjs): Record<string, string> {
     const color = props.weekdayColors?.[day.day()];
@@ -461,9 +495,30 @@
     border-right: 1px solid var(--cal-line);
   }
   .tg-dcol {
+    position: relative; /* 포커스 오버레이(::after)의 기준 */
     text-align: center;
     padding: 6px 0;
     border-right: 1px solid var(--cal-line-soft);
+  }
+  .tg-dcol::after,
+  .tg-col::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--cal-today-focus-bg, color-mix(in srgb, var(--cal-primary) 18%, transparent));
+    opacity: 0;
+    transition: opacity 500ms ease;
+  }
+  .tg-dcol--focus::after,
+  .tg-col--focus::after {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tg-dcol::after,
+    .tg-col::after {
+      transition: none;
+    }
   }
   .tg-dn {
     font-size: 12px;
@@ -508,6 +563,24 @@
     column-gap: 2px;
     padding: 2px;
     align-content: start;
+  }
+  .tg-allday__bg {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .tg-allday__bg > div {
+    position: relative;
+  }
+  .tg-allday__bg-cell--focus::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--cal-today-focus-bg, color-mix(in srgb, var(--cal-primary) 18%, transparent));
+    opacity: 1;
+    transition: opacity 500ms ease;
   }
   /* per-day drop targets behind the bars (all-day horizontal drag within the week) */
   .tg-allday__drops {

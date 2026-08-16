@@ -50,7 +50,9 @@
     width: `${props.box.widthPct}%`,
     background: props.box.event.color,
     color: (props.box.event.extendedProps?.textColor as string | undefined) ?? '#fff',
-    zIndex: props.box.zIndex
+    // side-by-side 모드(slotEventOverlap: false)는 zIndex가 비어있다(z-index: auto) — fallback 없으면
+    // 오늘 포커스 오버레이(.tg-col::after)가 트리상 마지막이라 이벤트 위로 그려진다
+    zIndex: props.box.zIndex ?? 1
   }));
 </script>
 

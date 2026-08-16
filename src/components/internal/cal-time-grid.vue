@@ -18,6 +18,7 @@
              reuses allDayGridStyle to match their column edges instead. -->
         <div class="tg-allday__bg" :style="allDayGridStyle" aria-hidden="true">
           <div
+            class="tg-allday__bg-cell"
             v-for="day in days"
             :class="{ 'tg-allday__bg-cell--focus': isFocusDay(day) }"
             :key="day.format('YYYY-MM-DD')" />
@@ -571,16 +572,25 @@
     z-index: 0;
     pointer-events: none;
   }
-  .tg-allday__bg > div {
+  .tg-allday__bg-cell {
     position: relative;
   }
-  .tg-allday__bg-cell--focus::after {
+  .tg-allday__bg-cell::after {
     content: '';
     position: absolute;
     inset: 0;
+    pointer-events: none;
     background: var(--cal-today-focus-bg, color-mix(in srgb, var(--cal-primary) 18%, transparent));
-    opacity: 1;
+    opacity: 0;
     transition: opacity 500ms ease;
+  }
+  .tg-allday__bg-cell--focus::after {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tg-allday__bg-cell::after {
+      transition: none;
+    }
   }
   /* per-day drop targets behind the bars (all-day horizontal drag within the week) */
   .tg-allday__drops {

@@ -38,9 +38,11 @@
           :event-order="opts.eventOrder"
           :events="normalized"
           :first-day="firstDay"
+          :focus-seq="focusSeq"
           :resizable="opts.resizable"
           :selectable="opts.selectable"
           :today="todayDate"
+          :today-focused="todayFocused"
           :weekday-colors="opts.weekdayColors"
           :weeks="weeks"
           @event-click="(e) => emit('eventClick', e)"
@@ -51,7 +53,10 @@
           v-else-if="view === 'list'"
           :event-order="opts.eventOrder"
           :events="normalized"
+          :focus-seq="focusSeq"
           :range="range"
+          :today="todayDate"
+          :today-focused="todayFocused"
           @event-click="(e) => emit('eventClick', e)" />
         <cal-time-grid
           v-else-if="view === 'week' || view === 'day'"
@@ -60,6 +65,7 @@
           :editable="opts.editable"
           :event-order="opts.eventOrder"
           :events="normalized"
+          :focus-seq="focusSeq"
           :now-indicator="opts.nowIndicator"
           :resizable="opts.resizable"
           :scroll-time="opts.scrollTime"
@@ -68,6 +74,7 @@
           :slot-max-time="opts.slotMaxTime"
           :slot-min-time="opts.slotMinTime"
           :today="todayDate"
+          :today-focused="todayFocused"
           :weekday-colors="opts.weekdayColors"
           @event-click="(e) => emit('eventClick', e)"
           @event-move="(p) => emit('eventMove', p)"
@@ -208,8 +215,28 @@
   function next() {
     step(1);
   }
+
+  /** 강조 유지 시간(ms). 이후 CSS transition으로 0.5초에 걸쳐 사라진다. */
+  const FOCUS_HOLD_MS = 2000;
+
+  const todayFocused = ref(false);
+  /** 누른 횟수 — 앵커가 그대로여도(이미 오늘이 속한 기간) 매번 올라 각 뷰가 반응한다 */
+  const focusSeq = ref(0);
+
+  // start()를 다시 부르면 이전 타이머가 취소되므로 '오늘' 연타에도 마지막 것만 남는다
+  const { start: startFocusTimer } = useTimeoutFn(
+    () => {
+      todayFocused.value = false;
+    },
+    FOCUS_HOLD_MS,
+    { immediate: false }
+  );
+
   function today() {
     anchor.value = dayjs();
+    todayFocused.value = true;
+    focusSeq.value++;
+    startFocusTimer();
   }
   function gotoDate(d: Dayjs) {
     anchor.value = d;

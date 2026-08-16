@@ -110,7 +110,7 @@ function onEventClick(ev: CalEvent) {
 | 메서드 | 설명 |
 | --- | --- |
 | `prev()` / `next()` | 이전/다음 기간으로 이동 (뷰에 따라 일·주·월 단위) |
-| `today()` | 오늘로 이동 |
+| `today()` | 오늘로 이동. 오늘 칸·행·컬럼을 약 2.5초간 강조한 뒤 자동으로 사라지고, 화면 밖이면 보이는 위치로 스크롤합니다 |
 | `setView(view: CalView)` | 뷰 전환 |
 | `gotoDate(date: Dayjs)` | 특정 날짜로 이동 |
 
@@ -240,8 +240,11 @@ const selected = ref(new Date().toISOString());
 | --- | --- | --- |
 | `--cal-tooltip-z` | `10000` | 호버 툴팁의 `z-index` |
 | `--cal-popover-z` | `1500` | 월 `+N 더보기` 팝오버·터치 겹침 팝오버의 `z-index` |
+| `--cal-today-focus-bg` | `color-mix(in srgb, var(--cal-primary) 18%, transparent)` | '오늘' 버튼 강조가 켜져 있는 동안 오늘 칸(월)·행(목록)·컬럼(주/일)에 칠해지는 배경 |
 
 ⚠️ 팝오버 2종과 툴팁은 모두 `<body>`로 teleport됩니다. 그래서 이 변수들은 캘린더를 감싸는 wrapper 엘리먼트가 아니라 **`:root`나 `body`에 지정해야** 합니다 — teleport된 뒤에는 wrapper가 더 이상 DOM 조상이 아니므로 wrapper에 지정한 값은 적용되지 않습니다.
+
+`--cal-today-focus-bg`는 이 제약을 받지 않습니다. 오늘 강조 오버레이는 teleport되지 않는 평범한 in-tree 엘리먼트이므로, `:root`·`body`뿐 아니라 캘린더를 감싸는 wrapper 등 어떤 상위 엘리먼트에 지정해도 그대로 적용됩니다.
 
 ## 로케일 (i18n)
 
@@ -268,6 +271,8 @@ const messages: Partial<CalMessages> = {
 ```
 
 `CalMessages`에는 정적 문자열 외에 요일 배열(`weekdaysShort`)과 날짜·시간 포맷터 함수(`monthTitle`, `eventTime`, `popoverDate` 등)가 포함되어 있어, 전체를 채우면 완전한 커스텀 로케일을 공급할 수 있습니다. `CalMiniMonth`도 동일한 `locale`·`messages` 옵션을 받습니다.
+
+완전한 커스텀 로케일을 채울 때는 `noEventsOnDay` 키를 빠뜨리지 마세요 — 목록 뷰에서 오늘 일정이 하나도 없을 때 오늘 행에 표시되는 문구입니다. `messages`는 `Partial<CalMessages>` 얕은 병합이라 이 키를 빠뜨려도 타입 에러 없이 한국어 기본값 `'일정 없음'`으로 조용히 폴백됩니다.
 
 ## 알아둘 점
 

@@ -50,7 +50,8 @@
     width: `${props.box.widthPct}%`,
     background: props.box.event.color,
     color: (props.box.event.extendedProps?.textColor as string | undefined) ?? '#fff',
-    // side-by-side 모드(slotEventOverlap: false)는 zIndex가 비어있다(z-index: auto) — fallback 없으면
+    // layoutDay는 cascade(= overlap && n > 1)일 때만 zIndex를 매긴다 — side-by-side 모드나
+    // 겹침이 없는 클러스터(n === 1)에서는 비어있다(z-index: auto). fallback이 없으면
     // 오늘 포커스 오버레이(.tg-col::after)가 트리상 마지막이라 이벤트 위로 그려진다
     zIndex: props.box.zIndex ?? 1
   }));

@@ -47,6 +47,8 @@ export interface CalMessages {
   close: string;
   resizeHint: string;
   noEvents: string;
+  /** 오늘 행에 일정이 하나도 없을 때 표시. 기간 전체가 빈 `noEvents`와는 다른 문구다 */
+  noEventsOnDay: string;
   todaySuffix: string;
   more: (n: number) => string;
   overlapCount: (n: number) => string;

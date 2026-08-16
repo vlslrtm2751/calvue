@@ -12,7 +12,7 @@
     </div>
 
     <!-- Weeks grid -->
-    <div class="cal-month__weeks">
+    <div class="cal-month__weeks" ref="weeksEl">
       <div
         class="cal-month__week"
         v-for="(week, wi) in weeks"
@@ -25,7 +25,8 @@
           :class="{
             'cal-month__cell--drop': inDropPreview(day),
             'cal-month__cell--sel': isInSelection(day),
-            'cal-month__cell--today': day.isSame(today, 'day')
+            'cal-month__cell--today': day.isSame(today, 'day'),
+            'cal-month__cell--focus': isFocusDay(day)
           }"
           :data-cal-date="day.format('YYYY-MM-DD')"
           :key="di"
@@ -146,6 +147,7 @@
   import { useCalI18n } from '../../composables/use-cal-i18n';
   import { useCalTooltip } from '../../composables/use-cal-tooltip';
   import { useCalPopoverDismiss } from '../../composables/use-cal-popover';
+  import { useCalTodayFocus } from '../../composables/use-cal-today-focus';
 
   const props = defineProps<{
     weeks: Dayjs[][];
@@ -159,6 +161,8 @@
     selectable?: boolean;
     resizable?: boolean;
     eventHeight?: number;
+    todayFocused?: boolean;
+    focusSeq?: number;
   }>();
 
   /** 셀당 최대 표시 일정 수(바+점 합산). 초과분은 '+N 더보기'. false/미지정이면 Infinity = 전부 표시 */
@@ -282,6 +286,31 @@
     const color = props.weekdayColors?.[day.day()];
     return color ? { color } : {};
   }
+
+  // --- Today Focus ---
+  const weeksEl = ref<HTMLElement | null>(null);
+
+  function isFocusDay(day: Dayjs): boolean {
+    return !!props.todayFocused && day.isSame(props.today, 'day');
+  }
+
+  /**
+   * 오늘 칸이 이미 다 보이면 스크롤하지 않는다 — 맨 위로 올리면 앞선 주들이 가려진다.
+   * 그 경우 강조의 페이드인/아웃 자체가 피드백 역할을 한다.
+   */
+  function scrollToToday(behavior: ScrollBehavior): void {
+    const host = weeksEl.value;
+    if (!host) return;
+    const key = props.today.format('YYYY-MM-DD');
+    const cell = host.querySelector<HTMLElement>(`[data-cal-date="${key}"]`);
+    if (!cell) return; // 오늘이 이번 달 그리드에 없음
+    const hostRect = host.getBoundingClientRect();
+    const cellRect = cell.getBoundingClientRect();
+    if (cellRect.top >= hostRect.top && cellRect.bottom <= hostRect.bottom) return; // 이미 다 보임
+    host.scrollTo({ top: host.scrollTop + (cellRect.top - hostRect.top), behavior });
+  }
+
+  useCalTodayFocus(toRef(props, 'focusSeq'), scrollToToday);
 
   // --- +N Popover ---
   /** 뷰포트 가장자리에서 유지할 최소 여백 */
@@ -429,6 +458,24 @@
   @media (hover: hover) {
     .cal-month__cell:hover {
       background: #fafbfc;
+    }
+  }
+
+  .cal-month__cell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--cal-today-focus-bg, color-mix(in srgb, var(--cal-primary) 18%, transparent));
+    opacity: 0;
+    transition: opacity 500ms ease;
+  }
+  .cal-month__cell--focus::after {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cal-month__cell::after {
+      transition: none;
     }
   }
 

@@ -20,7 +20,10 @@
             @click="ev.interactive !== false && emit('eventClick', ev)">
             <span class="dot" :style="{ background: ev.color }"></span>
             <span class="time">{{ m.dayLabel(ev, group.day) }}</span>
-            <span class="title">{{ ev.title }}</span>
+            <span class="list-evt__body">
+              <span class="title">{{ ev.title }}</span>
+              <span class="author" v-if="creatorName(ev)">{{ creatorName(ev) }}</span>
+            </span>
           </div>
         </div>
       </div>
@@ -98,6 +101,12 @@
 
   function isFocusRow(group: DayGroup): boolean {
     return !!props.todayFocused && group.isToday;
+  }
+
+  // 목록 뷰는 툴팁이 없고(모바일은 hover 자체가 없다) 작성자를 확인할 다른 경로가 없어 항상 표시한다.
+  // 작성자가 없는 일정(공휴일 등)은 그 행이 1줄로 남는다.
+  function creatorName(ev: CalEvent): string {
+    return (ev.extendedProps?.creator as string | undefined) ?? '';
   }
 
   /** 오늘 행을 스크롤 컨테이너 맨 위로 — sticky 월 헤더에 가리지 않게 그 높이만큼 뺀다 */
@@ -180,9 +189,11 @@
   .list-date--today .big {
     color: var(--cal-primary);
   }
+  /* 작성자가 붙으면 행이 2줄이 된다 → center가 아니라 flex-start.
+     안 그러면 작성자 있는 행에서 점·시각이 세로 중앙으로 내려가 첫 줄과 어긋난다 */
   .list-evt {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     padding: 7px 8px;
     margin: 0 -8px;
@@ -221,10 +232,24 @@
     color: var(--cal-muted);
     flex: none;
   }
+  /* min-width: 0 — 없으면 flex 항목의 auto 최소값(=제목 폭)이 남아 긴 제목이 가로 스크롤을 만든다 */
+  .list-evt__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
   .title {
     min-width: 0;
     font-size: 13.5px;
     color: var(--cal-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .author {
+    min-width: 0;
+    font-size: 12px;
+    color: var(--cal-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

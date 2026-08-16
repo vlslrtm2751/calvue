@@ -152,11 +152,6 @@
       transition: none;
     }
   }
-  .list-evt--empty {
-    color: var(--cal-muted);
-    font-size: 13px;
-    cursor: default;
-  }
   .list-evts {
     min-width: 0;
   }
@@ -205,6 +200,11 @@
   }
   .list-evt--static:hover {
     background: transparent;
+  }
+  .list-evt--empty {
+    color: var(--cal-muted);
+    font-size: 13px;
+    cursor: default;
   }
   .list-evt--empty:hover {
     background: transparent;

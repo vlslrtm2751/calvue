@@ -206,6 +206,9 @@
   .list-evt--static:hover {
     background: transparent;
   }
+  .list-evt--empty:hover {
+    background: transparent;
+  }
   .dot {
     width: 10px;
     height: 10px;

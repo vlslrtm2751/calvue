@@ -73,6 +73,7 @@
           :slot-event-overlap="opts.slotEventOverlap"
           :slot-max-time="opts.slotMaxTime"
           :slot-min-time="opts.slotMinTime"
+          :time-format="opts.timeFormat"
           :today="todayDate"
           :today-focused="todayFocused"
           :weekday-colors="opts.weekdayColors"

@@ -1,5 +1,5 @@
 <template>
-  <div class="tg">
+  <div class="tg" :class="{ 'tg--12h': timeFormat === '12h' }">
     <!-- Header row -->
     <div class="tg-head" :style="headCols">
       <div class="tg-corner"></div>
@@ -166,7 +166,7 @@
 
 <script lang="ts" setup>
   import type { Dayjs } from 'dayjs';
-  import type { CalEvent, CalEventChange, CalBusinessHours, EventOrder } from '../../types';
+  import type { CalEvent, CalEventChange, CalBusinessHours, EventOrder, TimeFormat } from '../../types';
   import type { TimeWindow } from '../../composables/use-event-layout';
   import { layoutDay } from '../../composables/use-event-layout';
   import { layoutDayGridRow, eventEndDay } from '../../composables/use-daygrid-layout';
@@ -202,6 +202,8 @@
     scrollTime?: string;
     weekdayColors?: Record<number, string>;
     eventOrder?: EventOrder;
+    /** resolved format, not raw option -- only '12h' widens the gutter (tg--12h); 'auto' stays untouched */
+    timeFormat?: TimeFormat;
   }>();
 
   const emit = defineEmits<{
@@ -644,6 +646,10 @@
     padding-right: 6px;
     transform: translateY(-7px);
     box-sizing: border-box;
+    /* without this, a label too wide for the gutter wraps to two lines instead of
+       overflowing -- which hides the problem from the ordinary scrollWidth > clientWidth
+       check. nowrap turns silent wrapping into measurable overflow. */
+    white-space: nowrap;
   }
 
   /* Day columns */
@@ -722,6 +728,14 @@
   @media (max-width: 600px) {
     .tg {
       --cal-gutter: 42px;
+    }
+    /* measured: narrow + ko + 12h needs ~44.5px for the widest label ('오전 10시' etc.,
+       double-digit 12-hour numbers) against a 41px content width at 42px -- the only
+       combination of the 8 measured (2 widths x 2 locales x auto/12h) that overflows once
+       .tg-hour is nowrap. 50px gutter clears it with a few px to spare. Must come after
+       .tg above: same specificity, source order decides which --cal-gutter wins. */
+    .tg--12h {
+      --cal-gutter: 50px;
     }
     .tg-hour {
       font-size: 10px;

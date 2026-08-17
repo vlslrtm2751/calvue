@@ -7,10 +7,10 @@
         <template v-for="f in props.fields" :key="f">
           <div class="cal-tip__row" v-if="f === 'creator' && creator">{{ m.creator }}: {{ creator }}</div>
           <div class="cal-tip__row" v-else-if="f === 'start'"
-            >{{ m.start }}: {{ state.event.start.format('YYYY-MM-DD HH:mm') }}</div
+            >{{ m.start }}: {{ m.tooltipDateTime(state.event.start) }}</div
           >
           <div class="cal-tip__row" v-else-if="f === 'end'"
-            >{{ m.end }}: {{ state.event.end.format('YYYY-MM-DD HH:mm') }}</div
+            >{{ m.end }}: {{ m.tooltipDateTime(state.event.end) }}</div
           >
           <div class="cal-tip__desc" v-else-if="f === 'description' && description">{{ description }}</div>
         </template>

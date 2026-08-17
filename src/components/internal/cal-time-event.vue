@@ -28,7 +28,7 @@
   import type { CalEvent } from '../../types';
   import { useCalTooltip } from '../../composables/use-cal-tooltip';
 
-  const props = defineProps<{ box: TimeBox; resizableEnd?: boolean; timeLabel?: string }>();
+  const props = defineProps<{ box: TimeBox; resizableEnd?: boolean; timeLabel: string }>();
 
   const emit = defineEmits<{
     click: [{ event: CalEvent; native: MouseEvent }];
@@ -38,10 +38,8 @@
 
   const tip = useCalTooltip();
   const interactive = computed(() => props.box.event.interactive !== false);
-  // per-day 라벨(멀티데이: 시작일 "HH:mm~" / 중간일 "종일" / 종료일 "~HH:mm")이 넘어오면 그걸, 없으면 당일 범위
-  const timeText = computed(
-    () => props.timeLabel ?? `${props.box.event.start.format('HH:mm')}–${props.box.event.end.format('HH:mm')}`
-  );
+  // per-day 라벨(멀티데이: 시작일 "HH:mm~" / 중간일 "종일" / 종료일 "~HH:mm"). 카탈로그에서 나온다
+  const timeText = computed(() => props.timeLabel);
 
   const boxStyle = computed(() => ({
     top: `${props.box.topPct}%`,

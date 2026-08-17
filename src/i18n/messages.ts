@@ -29,7 +29,11 @@ const enClock12: Clock = (h, m) => {
 function pickClocks(tf: TimeFormat, clock12: Clock): { event: Clock; grid: Clock } {
   if (tf === '12h') return { event: clock12, grid: clock12 };
   if (tf === '24h') return { event: clock24, grid: clock24 };
-  return { event: clock12, grid: clock24 };
+  if (tf === 'auto') return { event: clock12, grid: clock24 };
+  // Exhaustiveness check: if TimeFormat ever grows a fourth member, tf's narrowed type here
+  // stops being `never` and this line fails to compile instead of silently falling through.
+  const _exhaustive: never = tf;
+  return _exhaustive;
 }
 
 // ─── ko helpers (현 format.ts / use-calendar-grid.ts 로직 그대로) ──────────────

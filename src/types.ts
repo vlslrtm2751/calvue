@@ -61,6 +61,11 @@ export interface CalMessages {
   eventTime: (d: Dayjs) => string;
   dayLabel: (ev: CalEvent, day: Dayjs) => string;
   gridTimeLabel: (ev: CalEvent, day: Dayjs) => string;
+  /** 시:분 한 지점. 주/일 눈금·드래그 프리뷰·클러스터 팝오버가 공유한다.
+      Dayjs가 아니라 (hour, minute)인 이유: 드래그 프리뷰는 자정 기준 분만 들고 있고 Dayjs가 없다 */
+  clockTime: (hour: number, minute: number) => string;
+  /** 툴팁의 날짜+시각. 날짜가 필요해 clockTime과 분리한다 */
+  tooltipDateTime: (d: Dayjs) => string;
   popoverDate: (d: Dayjs) => string;
   listMonthHeader: (d: Dayjs) => string;
 }
@@ -99,10 +104,15 @@ export type EventOrder = (a: CalEvent, b: CalEvent) => number;
 /** fullCalendar calendarOptions의 우리가 쓰는 subset 설정 객체 */
 export type CalTooltipField = "creator" | "start" | "end" | "description";
 
+/** 시각 표기. 'auto'는 뷰별 관례(월=12시간, 주·일·목록=24시간). */
+export type TimeFormat = "auto" | "12h" | "24h";
+
 export interface CalOptions {
   views: CalView[]; // 표시할 뷰 (기본 ['day','week','month','list'])
   locale: string; // 'ko' | 'en' 내장; 그 외는 messages로 공급 (기본 'ko')
   messages?: Partial<CalMessages>; // 선택: 선택 로케일 기본값 위 키 단위 얕은 병합
+  /** 시각 표기 (기본 'auto' = 월 12시간 / 주·일·목록 24시간). messages로 넘긴 포맷터가 이보다 우선한다 */
+  timeFormat: TimeFormat;
   /** 강조색. --cal-primary CSS 커스텀 프로퍼티로 주입됨 (기본 '#1976d2') */
   primaryColor: string;
   firstDay: number; // 주 시작 요일 0=일 (기본 0)

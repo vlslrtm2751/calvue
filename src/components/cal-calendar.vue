@@ -117,6 +117,7 @@
   const DEFAULT_CAL_OPTIONS: CalOptions = {
     views: ['day', 'week', 'month', 'list'],
     locale: 'ko',
+    timeFormat: 'auto',
     primaryColor: '#1976d2',
     firstDay: 0,
     weekends: true,

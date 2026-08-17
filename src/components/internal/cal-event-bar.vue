@@ -13,9 +13,7 @@
       }
     ">
     <span class="cal-evt__dot" v-if="!event.allDay && !continued" />
-    <span class="cal-evt__time" v-if="!event.allDay && !continued">{{
-      timeLabel ?? m.eventTime(event.start)
-    }}</span>
+    <span class="cal-evt__time" v-if="!event.allDay && !continued">{{ m.eventTime(event.start) }}</span>
     <span class="cal-evt__label" :class="{ 'cal-evt__label--timed': !event.allDay }">{{ event.title }}</span>
     <span
       class="cal-evt__resize"
@@ -32,14 +30,7 @@
   import { useCalTooltip } from '../../composables/use-cal-tooltip';
 
   // continued: 멀티위크 일정의 '시작 주가 아닌' 이어지는 조각 → 시각/점을 숨기고 제목만(시작 주에만 시간 표시)
-  // timeLabel: 부모가 표기를 지정할 때 쓴다(주/일 종일 행은 24시간, 월 뷰는 기본 eventTime).
-  // 미지정 시 카탈로그의 eventTime — 월 뷰의 기존 동작이 그대로 유지된다.
-  const props = defineProps<{
-    event: CalEvent;
-    resizableEnd?: boolean;
-    continued?: boolean;
-    timeLabel?: string;
-  }>();
+  const props = defineProps<{ event: CalEvent; resizableEnd?: boolean; continued?: boolean }>();
   defineEmits<{
     click: [CalEvent];
     pointerdown: [{ ev: CalEvent; native: PointerEvent }];

@@ -38,6 +38,7 @@
         <cal-event-bar
           v-for="seg in allDayLayout.segments"
           :event="seg.event"
+          :time-label="m.clockTime(seg.event.start.hour(), seg.event.start.minute())"
           :key="seg.event.key"
           :resizable-end="
             canDragAllDay &&

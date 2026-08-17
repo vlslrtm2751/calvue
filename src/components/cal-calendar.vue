@@ -139,7 +139,7 @@
   };
   const opts = computed<CalOptions>(() => ({ ...DEFAULT_CAL_OPTIONS, ...props.options }));
   const primaryColor = computed(() => opts.value.primaryColor);
-  const messages = computed(() => resolveMessages(opts.value.locale, opts.value.messages));
+  const messages = computed(() => resolveMessages(opts.value.locale, opts.value.messages, opts.value.timeFormat));
   provide(CAL_I18N, messages);
   const rootStyle = computed(() => {
     const [sh, sm] = (opts.value.slotDuration || '01:00').split(':').map(Number);

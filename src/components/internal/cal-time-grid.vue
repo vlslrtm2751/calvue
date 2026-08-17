@@ -68,9 +68,7 @@
       <div class="tg-body" :style="gridCols">
         <!-- Hour gutter -->
         <div class="tg-gutter">
-          <div class="tg-hour" v-for="(h, i) in HOURS" :key="h">{{
-            i > 0 ? `${String(h).padStart(2, '0')}:00` : ''
-          }}</div>
+          <div class="tg-hour" v-for="(h, i) in HOURS" :key="h">{{ i > 0 ? m.clockTime(h, 0) : '' }}</div>
         </div>
 
         <!-- Per-day columns -->
@@ -153,7 +151,11 @@
             :key="ev.key"
             @click="onClusterRow(ev)">
             <span class="tg-cluster__dot" :style="{ background: ev.color }" />
-            <span class="tg-cluster__time">{{ ev.start.format('HH:mm') }}–{{ ev.end.format('HH:mm') }}</span>
+            <span class="tg-cluster__time"
+              >{{ m.clockTime(ev.start.hour(), ev.start.minute()) }}–{{
+                m.clockTime(ev.end.hour(), ev.end.minute())
+              }}</span
+            >
             <span class="tg-cluster__title">{{ ev.title }}</span>
           </div>
         </div>
@@ -274,9 +276,9 @@
     return k >= selectPreview.startDate && k <= selectPreview.endDate;
   }
 
-  function fmtMin(m: number): string {
-    const t = ((m % 1440) + 1440) % 1440;
-    return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+  function fmtMin(min: number): string {
+    const t = ((min % 1440) + 1440) % 1440;
+    return m.value.clockTime(Math.floor(t / 60), t % 60);
   }
 
   // Selection-drag highlight segment for one day column (range may span days).

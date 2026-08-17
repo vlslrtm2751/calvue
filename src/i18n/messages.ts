@@ -1,37 +1,72 @@
 import type { Dayjs } from 'dayjs';
-import type { CalEvent, CalMessages } from '../types';
+import type { CalMessages, TimeFormat } from '../types';
+
+type Clock = (hour: number, minute: number) => string;
+
+/** 24시간 시계 — 로케일 무관 */
+const clock24: Clock = (h, m) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+/** 한국어 12시간 시계. 정각은 '오전 9시', 그 외는 '오전 9:30' */
+const koClock12: Clock = (h, m) => {
+  const ampm = h < 12 ? '오전' : '오후';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return m === 0 ? `${ampm} ${h12}시` : `${ampm} ${h12}:${String(m).padStart(2, '0')}`;
+};
+
+/** 영어 12시간 시계. 정각은 '9 AM', 그 외는 '9:30 AM' */
+const enClock12: Clock = (h, m) => {
+  const ampm = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return m === 0 ? `${h12} ${ampm}` : `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+};
+
+/**
+ * timeFormat에 따라 두 시계를 고른다.
+ * - event: 월 뷰 이벤트 시각·드래그 고스트 (eventTime 키)
+ * - grid:  주/일 눈금·이벤트 바·목록 뷰·툴팁 (나머지 4개 키)
+ * 'auto'가 둘을 다르게 고르는 게 "월 12시간 / 주·일·목록 24시간" 규칙의 전부다.
+ */
+function pickClocks(tf: TimeFormat, clock12: Clock): { event: Clock; grid: Clock } {
+  if (tf === '12h') return { event: clock12, grid: clock12 };
+  if (tf === '24h') return { event: clock24, grid: clock24 };
+  return { event: clock12, grid: clock24 };
+}
 
 // ─── ko helpers (현 format.ts / use-calendar-grid.ts 로직 그대로) ──────────────
 const KO_WD = ['일', '월', '화', '수', '목', '금', '토'];
 
-function koEventTime(d: Dayjs): string {
-  const h = d.hour();
-  const m = d.minute();
-  const ampm = h < 12 ? '오전' : '오후';
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return m === 0 ? `${ampm} ${h12}시` : `${ampm} ${h12}:${String(m).padStart(2, '0')}`;
-}
+type TimeKeys = Pick<CalMessages, 'clockTime' | 'eventTime' | 'dayLabel' | 'gridTimeLabel' | 'tooltipDateTime'>;
 
-function koDayLabel(ev: CalEvent, day: Dayjs): string {
-  if (ev.allDay) return '종일';
-  const d = day.startOf('day');
-  const startsHere = ev.start.startOf('day').isSame(d);
-  const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
-  if (startsHere && endsHere) return `${ev.start.format('HH:mm')}–${ev.end.format('HH:mm')}`;
-  if (startsHere) return koEventTime(ev.start);
-  if (endsHere) return `${koEventTime(ev.end)} 종료`;
-  return '종일';
-}
-
-function koGridTimeLabel(ev: CalEvent, day: Dayjs): string {
-  if (ev.allDay) return '종일';
-  const d = day.startOf('day');
-  const startsHere = ev.start.startOf('day').isSame(d);
-  const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
-  if (startsHere && endsHere) return `${ev.start.format('HH:mm')}–${ev.end.format('HH:mm')}`;
-  if (startsHere) return `${ev.start.format('HH:mm')}~`;
-  if (endsHere) return `~${ev.end.format('HH:mm')}`;
-  return '종일';
+function koTimeKeys(tf: TimeFormat): TimeKeys {
+  const { event, grid } = pickClocks(tf, koClock12);
+  const at = (d: Dayjs) => grid(d.hour(), d.minute());
+  return {
+    clockTime: grid,
+    eventTime: (d) => event(d.hour(), d.minute()),
+    dayLabel: (ev, day) => {
+      if (ev.allDay) return '종일';
+      const d = day.startOf('day');
+      const startsHere = ev.start.startOf('day').isSame(d);
+      const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
+      if (startsHere && endsHere) return `${at(ev.start)}–${at(ev.end)}`;
+      if (startsHere) return at(ev.start);
+      if (endsHere) return `${at(ev.end)} 종료`;
+      return '종일';
+    },
+    gridTimeLabel: (ev, day) => {
+      if (ev.allDay) return '종일';
+      const d = day.startOf('day');
+      const startsHere = ev.start.startOf('day').isSame(d);
+      const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
+      if (startsHere && endsHere) return `${at(ev.start)}–${at(ev.end)}`;
+      if (startsHere) return `${at(ev.start)}~`;
+      if (endsHere) return `~${at(ev.end)}`;
+      return '종일';
+    },
+    // 날짜부는 두 로케일 모두 ISO를 유지한다 — 이번 phase는 '시각' 표기가 대상이고,
+    // ISO 날짜는 로케일 중립이라 바꿀 이유가 없다. 시각부만 시계를 따른다.
+    tooltipDateTime: (d) => `${d.format('YYYY-MM-DD')} ${at(d)}`
+  };
 }
 
 function koWeekTitle(s: Dayjs, e: Dayjs): string {
@@ -41,7 +76,7 @@ function koWeekTitle(s: Dayjs, e: Dayjs): string {
     : `${s.format('YYYY년 M월 D일')} – ${e.format('M월 D일')}`;
 }
 
-export const ko: CalMessages = {
+const koStatic = {
   today: '오늘',
   prev: '이전',
   next: '다음',
@@ -58,17 +93,14 @@ export const ko: CalMessages = {
   noEvents: '이 기간에 일정이 없습니다.',
   noEventsOnDay: '일정 없음',
   todaySuffix: '오늘',
-  more: (n) => `+${n} 더보기`,
-  overlapCount: (n) => `겹친 일정 ${n}건`,
+  more: (n: number) => `+${n} 더보기`,
+  overlapCount: (n: number) => `겹친 일정 ${n}건`,
   weekdaysShort: KO_WD,
-  monthTitle: (d) => d.format('YYYY년 M월'),
-  dayTitle: (d) => `${d.format('YYYY년 M월 D일')} (${KO_WD[d.day()]})`,
+  monthTitle: (d: Dayjs) => d.format('YYYY년 M월'),
+  dayTitle: (d: Dayjs) => `${d.format('YYYY년 M월 D일')} (${KO_WD[d.day()]})`,
   weekTitle: koWeekTitle,
-  eventTime: koEventTime,
-  dayLabel: koDayLabel,
-  gridTimeLabel: koGridTimeLabel,
-  popoverDate: (d) => `${d.format('M월 D일')} (${KO_WD[d.day()]})`,
-  listMonthHeader: (d) => d.format('YYYY년 M월')
+  popoverDate: (d: Dayjs) => `${d.format('M월 D일')} (${KO_WD[d.day()]})`,
+  listMonthHeader: (d: Dayjs) => d.format('YYYY년 M월')
 };
 
 // ─── en helpers ───────────────────────────────────────────────────────────────
@@ -79,34 +111,34 @@ const EN_MON_FULL = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-function enEventTime(d: Dayjs): string {
-  const h = d.hour();
-  const m = d.minute();
-  const ampm = h < 12 ? 'AM' : 'PM';
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return m === 0 ? `${h12} ${ampm}` : `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
-}
-
-function enDayLabel(ev: CalEvent, day: Dayjs): string {
-  if (ev.allDay) return 'All day';
-  const d = day.startOf('day');
-  const startsHere = ev.start.startOf('day').isSame(d);
-  const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
-  if (startsHere && endsHere) return `${ev.start.format('HH:mm')}–${ev.end.format('HH:mm')}`;
-  if (startsHere) return enEventTime(ev.start);
-  if (endsHere) return `${enEventTime(ev.end)} ends`;
-  return 'All day';
-}
-
-function enGridTimeLabel(ev: CalEvent, day: Dayjs): string {
-  if (ev.allDay) return 'All day';
-  const d = day.startOf('day');
-  const startsHere = ev.start.startOf('day').isSame(d);
-  const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
-  if (startsHere && endsHere) return `${ev.start.format('HH:mm')}–${ev.end.format('HH:mm')}`;
-  if (startsHere) return `${ev.start.format('HH:mm')}~`;
-  if (endsHere) return `~${ev.end.format('HH:mm')}`;
-  return 'All day';
+function enTimeKeys(tf: TimeFormat): TimeKeys {
+  const { event, grid } = pickClocks(tf, enClock12);
+  const at = (d: Dayjs) => grid(d.hour(), d.minute());
+  return {
+    clockTime: grid,
+    eventTime: (d) => event(d.hour(), d.minute()),
+    dayLabel: (ev, day) => {
+      if (ev.allDay) return 'All day';
+      const d = day.startOf('day');
+      const startsHere = ev.start.startOf('day').isSame(d);
+      const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
+      if (startsHere && endsHere) return `${at(ev.start)}–${at(ev.end)}`;
+      if (startsHere) return at(ev.start);
+      if (endsHere) return `${at(ev.end)} ends`;
+      return 'All day';
+    },
+    gridTimeLabel: (ev, day) => {
+      if (ev.allDay) return 'All day';
+      const d = day.startOf('day');
+      const startsHere = ev.start.startOf('day').isSame(d);
+      const endsHere = ev.end.subtract(1, 'millisecond').startOf('day').isSame(d);
+      if (startsHere && endsHere) return `${at(ev.start)}–${at(ev.end)}`;
+      if (startsHere) return `${at(ev.start)}~`;
+      if (endsHere) return `~${at(ev.end)}`;
+      return 'All day';
+    },
+    tooltipDateTime: (d) => `${d.format('YYYY-MM-DD')} ${at(d)}`
+  };
 }
 
 function enWeekTitle(s: Dayjs, e: Dayjs): string {
@@ -118,7 +150,7 @@ function enWeekTitle(s: Dayjs, e: Dayjs): string {
     : `${EN_MON_SHORT[s.month()]} ${s.date()} – ${EN_MON_SHORT[e.month()]} ${e.date()}, ${s.year()}`;
 }
 
-export const en: CalMessages = {
+const enStatic = {
   today: 'Today',
   prev: 'Previous',
   next: 'Next',
@@ -135,24 +167,38 @@ export const en: CalMessages = {
   noEvents: 'No events in this period.',
   noEventsOnDay: 'No events',
   todaySuffix: 'Today',
-  more: (n) => `+${n} more`,
-  overlapCount: (n) => `${n} overlapping`,
+  more: (n: number) => `+${n} more`,
+  overlapCount: (n: number) => `${n} overlapping`,
   weekdaysShort: EN_WD,
-  monthTitle: (d) => `${EN_MON_FULL[d.month()]} ${d.year()}`,
-  dayTitle: (d) => `${EN_WD[d.day()]}, ${EN_MON_SHORT[d.month()]} ${d.date()}, ${d.year()}`,
+  monthTitle: (d: Dayjs) => `${EN_MON_FULL[d.month()]} ${d.year()}`,
+  dayTitle: (d: Dayjs) => `${EN_WD[d.day()]}, ${EN_MON_SHORT[d.month()]} ${d.date()}, ${d.year()}`,
   weekTitle: enWeekTitle,
-  eventTime: enEventTime,
-  dayLabel: enDayLabel,
-  gridTimeLabel: enGridTimeLabel,
-  popoverDate: (d) => `${EN_MON_SHORT[d.month()]} ${d.date()} (${EN_WD[d.day()]})`,
-  listMonthHeader: (d) => `${EN_MON_FULL[d.month()]} ${d.year()}`
+  popoverDate: (d: Dayjs) => `${EN_MON_SHORT[d.month()]} ${d.date()} (${EN_WD[d.day()]})`,
+  listMonthHeader: (d: Dayjs) => `${EN_MON_FULL[d.month()]} ${d.year()}`
 };
 
 // ─── resolver ─────────────────────────────────────────────────────────────────
-const BUILTINS: Record<string, CalMessages> = { ko, en };
+const BUILTINS: Record<string, (tf: TimeFormat) => CalMessages> = {
+  ko: (tf) => ({ ...koStatic, ...koTimeKeys(tf) }),
+  en: (tf) => ({ ...enStatic, ...enTimeKeys(tf) })
+};
 
-/** locale로 내장 카탈로그 선택(미지원 → ko) 후 overrides를 키 단위 얕은 병합. */
-export function resolveMessages(locale: string, overrides?: Partial<CalMessages>): CalMessages {
-  const base = Object.prototype.hasOwnProperty.call(BUILTINS, locale) ? BUILTINS[locale] : ko;
+/** 'auto' 변형. 기존 export 호환을 위해 유지한다.
+    ko는 지우면 안 된다 — use-cal-i18n.ts가 provider 없는 단독 사용 폴백으로 쓴다. */
+export const ko: CalMessages = BUILTINS.ko('auto');
+export const en: CalMessages = BUILTINS.en('auto');
+
+/**
+ * locale로 내장 카탈로그 선택(미지원 → ko) → timeFormat으로 시계 변형 선택 →
+ * overrides를 키 단위 얕은 병합.
+ * overrides가 **마지막**이라 소비자가 messages로 넘긴 포맷터는 timeFormat을 이긴다.
+ */
+export function resolveMessages(
+  locale: string,
+  overrides?: Partial<CalMessages>,
+  timeFormat: TimeFormat = 'auto'
+): CalMessages {
+  const build = Object.prototype.hasOwnProperty.call(BUILTINS, locale) ? BUILTINS[locale] : BUILTINS.ko;
+  const base = build(timeFormat);
   return overrides ? { ...base, ...overrides } : base;
 }

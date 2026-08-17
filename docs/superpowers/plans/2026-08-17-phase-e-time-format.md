@@ -33,7 +33,7 @@
 | `src/components/internal/cal-time-grid.vue` | 눈금·`fmtMin`·클러스터를 카탈로그로, 종일 행에 `time-label` 전달 | 3, 4 |
 | `src/components/internal/cal-tooltip.vue` | 시작·종료를 `tooltipDateTime`으로 | 3 |
 | `src/components/internal/cal-time-event.vue` | 죽은 하드코딩 폴백 제거, `timeLabel` 필수화 | 3 |
-| `src/components/internal/cal-event-bar.vue` | `timeLabel` 선택 prop 추가(미지정 시 현행 `m.eventTime`) | 4 |
+| ~~`src/components/internal/cal-event-bar.vue`~~ | ~~`timeLabel` 선택 prop 추가~~ — Task 4 무효, 건드리지 않음 | ~~4~~ |
 | `playground/main.ts` | `?locale=`·`?timeFormat=` 쿼리 파라미터 | 5 |
 | `README.md` | `timeFormat` 옵션, 새 키 2개, 얕은 병합 경고 | 7 |
 
@@ -524,7 +524,15 @@ for a future edit to revive."
 
 ---
 
-## Task 4: 주/일 종일 행을 24시간으로
+## Task 4: 주/일 종일 행을 24시간으로 — ❌ 무효 (구현 후 되돌림)
+
+> **이 태스크는 존재하지 않는 문제를 고쳤다. 구현했다가 되돌렸으니 다시 실행하지 말 것.**
+>
+> `cal-time-grid.vue:328`이 `allDayEvents = props.events.filter((e) => e.allDay)`라 **종일 행에는 `allDay: true` 이벤트만 들어간다.** 그런데 `cal-event-bar.vue`의 시각 span은 `v-if="!event.allDay && !continued"`로 막혀 있어, 그 행이 담을 수 있는 모든 이벤트에서 시각이 **아예 렌더링되지 않는다.**
+>
+> 시간이 있는 멀티데이 이벤트는 종일 행이 아니라 시간 그리드로 간다(같은 파일 348행). 거기 라벨인 `gridTimeLabel`은 모든 분기가 원래부터 24시간이다. **주/일 뷰에는 혼용이 없다.**
+>
+> 아래 원문은 기록으로 남긴다. 스펙의 정정 절 참조.
 
 **Files:**
 - Modify: `src/components/internal/cal-event-bar.vue` (`timeLabel` 선택 prop 추가)

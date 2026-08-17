@@ -249,10 +249,11 @@ const selected = ref(new Date().toISOString());
 | `--cal-tooltip-z` | `10000` | 호버 툴팁의 `z-index` |
 | `--cal-popover-z` | `1500` | 월 `+N 더보기` 팝오버·터치 겹침 팝오버의 `z-index` |
 | `--cal-today-focus-bg` | `color-mix(in srgb, var(--cal-primary) 18%, transparent)` | '오늘' 버튼 강조가 켜져 있는 동안 오늘 칸(월)·행(목록)·컬럼(주/일)에 칠해지는 배경 |
+| `--cal-gutter` | `56px` (뷰포트 폭 600px 미만에서는 `42px`) | 주/일 뷰 시간 눈금 거터(왼쪽 시각 열) 폭. 내장 시계보다 넓게 렌더링되는 커스텀 `clockTime`을 쓸 때 조절하는 값 |
 
 ⚠️ 팝오버 2종과 툴팁은 모두 `<body>`로 teleport됩니다. 그래서 이 변수들은 캘린더를 감싸는 wrapper 엘리먼트가 아니라 **`:root`나 `body`에 지정해야** 합니다 — teleport된 뒤에는 wrapper가 더 이상 DOM 조상이 아니므로 wrapper에 지정한 값은 적용되지 않습니다.
 
-`--cal-today-focus-bg`는 이 제약을 받지 않습니다. 오늘 강조 오버레이는 teleport되지 않는 평범한 in-tree 엘리먼트이므로, `:root`·`body`뿐 아니라 캘린더를 감싸는 wrapper 등 어떤 상위 엘리먼트에 지정해도 그대로 적용됩니다.
+`--cal-today-focus-bg`와 `--cal-gutter`는 이 제약을 받지 않습니다. 오늘 강조 오버레이와 시간 눈금 거터는 모두 teleport되지 않는 평범한 in-tree 엘리먼트이므로, `:root`·`body`뿐 아니라 캘린더를 감싸는 wrapper 등 어떤 상위 엘리먼트에 지정해도 그대로 적용됩니다. 거터를 넓혀도 `.tg-hour`는 `white-space: nowrap`이라 라벨이 여전히 넓으면 줄바꿈 대신 밖으로 삐져나옵니다 — 넘치면 거터를 더 넓혀야 한다는 신호입니다.
 
 ## 로케일 (i18n)
 
@@ -292,7 +293,7 @@ const messages: Partial<CalMessages> = {
 
 완전한 커스텀 로케일을 채울 때는 `noEventsOnDay` 키를 빠뜨리지 마세요 — 목록 뷰에서 오늘 일정이 하나도 없을 때 오늘 행에 표시되는 문구입니다. `messages`는 `Partial<CalMessages>` 얕은 병합이라 이 키를 빠뜨려도 타입 에러 없이 한국어 기본값 `'일정 없음'`으로 조용히 폴백됩니다.
 
-같은 이유로 `clockTime`(시:분 한 지점)과 `tooltipDateTime`(툴팁의 날짜+시각)도 빠뜨리지 마세요. 이 둘이 없으면 주/일 눈금·드래그 프리뷰·클러스터 팝오버·툴팁이 한국어 기본 표기로 조용히 폴백합니다. `clockTime`은 `Dayjs`가 아니라 `(hour, minute)`을 받습니다 — 드래그 프리뷰는 자정 기준 분만 들고 있어 `Dayjs`가 없기 때문입니다.
+같은 이유로 `clockTime`(시:분 한 지점)과 `tooltipDateTime`(툴팁의 날짜+시각)도 빠뜨리지 마세요. 이 둘이 없으면 주/일 눈금·드래그 프리뷰·클러스터 팝오버·툴팁이 조용히 폴백합니다 — `timeFormat`이 `'auto'`나 `'24h'`면 `HH:mm`·`YYYY-MM-DD HH:mm` 형태(로케일 중립 숫자, v0.3.0과 동일)로, `'12h'`일 때만 한국어 기본값(`오전 9시` 형태)으로 폴백합니다. `clockTime`은 `Dayjs`가 아니라 `(hour, minute)`을 받습니다 — 드래그 프리뷰는 자정 기준 분만 들고 있어 `Dayjs`가 없기 때문입니다.
 
 ## 알아둘 점
 

@@ -900,8 +900,6 @@ supply or silently get Korean."
 | 눈금·`fmtMin`·클러스터·툴팁 카탈로그화 | 3 |
 | `cal-time-event` 죽은 폴백 제거 | 3 Step 5 |
 | 목록 뷰 24시간 통일 | 1 Step 5·6 (`dayLabel` 전 분기 `at()`) |
-| 주/일 종일 행 24시간 | 4 |
-| 월 뷰 12시간 유지 | 4 Step 4 (월 뷰가 `time-label`을 안 넘기는지 확인) |
 | 플레이그라운드 쿼리 파라미터 | 5 |
 | 눈금 폭 실측 | 6 |
 | README 수정 + 얕은 병합 경고 | 7 |

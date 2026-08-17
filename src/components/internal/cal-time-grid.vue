@@ -138,7 +138,13 @@
     </div>
     <!-- 터치: 겹친 일정 클러스터 팝오버 — .cal-swipe transform 밖으로 teleport(fixed를 뷰포트 기준으로) -->
     <Teleport to="body">
-      <div class="tg-cluster" v-if="cluster" :style="clusterStyle" @click.stop ref="clusterEl">
+      <div
+        class="tg-cluster"
+        :class="{ 'tg-cluster--12h': timeFormat === '12h' }"
+        v-if="cluster"
+        :style="clusterStyle"
+        @click.stop
+        ref="clusterEl">
         <div class="tg-cluster__head">
           <span>{{ m.overlapCount(cluster.events.length) }}</span>
           <button class="tg-cluster__close" @click="cluster = null" :aria-label="m.close">×</button>
@@ -202,7 +208,10 @@
     scrollTime?: string;
     weekdayColors?: Record<number, string>;
     eventOrder?: EventOrder;
-    /** resolved format, not raw option -- only '12h' widens the gutter (tg--12h); 'auto' stays untouched */
+    /** the timeFormat OPTION with defaults applied (cal-calendar passes opts.timeFormat) --
+        deliberately not the effective clock. A messages.clockTime override changes what
+        renders but must not also widen the gutter, so this prop stays the raw option;
+        only '12h' widens it (tg--12h), 'auto' stays untouched. */
     timeFormat?: TimeFormat;
   }>();
 
@@ -844,6 +853,21 @@
     color: var(--cal-muted);
     flex: none;
     width: 88px;
+    /* without this, a label too wide for the box wraps instead of overflowing, which the
+       ordinary scrollWidth > clientWidth check can't see -- nowrap turns it into measurable
+       overflow. Mirrors .tg-hour above. */
+    white-space: nowrap;
+  }
+  /* measured (natural, unwrapped width against the 88px box): ko 12h's widest label
+     ('오전 12:45–오후 11:45', double-digit hour + minute on both sides) is ~120.7px; even the
+     compact on-the-hour form ('오전 10시–오전 11시') is ~113px. en 12h's widest
+     ('12:45 AM–11:45 PM') is ~109.5px. 130px clears the ko worst case with ~9px to spare.
+     auto/24h max out at ~64.3px in either language (clock24 in both), well inside 88px, so
+     they're untouched. .tg-cluster is teleported to <body> -- a plain `.tg--12h .tg-cluster__time`
+     descendant selector would never match once teleport moves it out of .tg's subtree, so the
+     modifier lives on .tg-cluster itself instead. */
+  .tg-cluster--12h .tg-cluster__time {
+    width: 130px;
   }
   .tg-cluster__title {
     font-size: 13px;

@@ -55,6 +55,7 @@
           :events="normalized"
           :focus-seq="focusSeq"
           :range="range"
+          :time-format="opts.timeFormat"
           :today="todayDate"
           :today-focused="todayFocused"
           @event-click="(e) => emit('eventClick', e)" />

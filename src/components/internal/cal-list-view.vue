@@ -1,5 +1,5 @@
 <template>
-  <div class="list" ref="listEl">
+  <div class="list" :class="{ 'list--12h': timeFormat === '12h' }" ref="listEl">
     <template v-for="group in groupedByDay" :key="group.dateKey">
       <div class="list-month" v-if="group.monthLabel">{{ group.monthLabel }}</div>
       <div
@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-  import type { CalEvent, CalRange, EventOrder } from '../../types';
+  import type { CalEvent, CalRange, EventOrder, TimeFormat } from '../../types';
   import type { Dayjs } from 'dayjs';
   import { defaultEventOrder } from '../../composables/use-event-order';
   import { useCalI18n } from '../../composables/use-cal-i18n';
@@ -46,6 +46,9 @@
     eventOrder?: EventOrder;
     todayFocused?: boolean;
     focusSeq?: number;
+    /** the timeFormat OPTION with defaults applied (cal-calendar passes opts.timeFormat) --
+        only '12h' widens the .time column (list--12h); 'auto'/'24h' stay untouched. */
+    timeFormat?: TimeFormat;
   }>();
   const emit = defineEmits<{ eventClick: [CalEvent] }>();
   const m = useCalI18n();
@@ -231,6 +234,18 @@
     font-size: 12.5px;
     color: var(--cal-muted);
     flex: none;
+    /* without this, a label too wide for the box wraps instead of overflowing, which the
+       ordinary scrollWidth > clientWidth check can't see -- nowrap turns it into measurable
+       overflow. Mirrors .tg-hour in cal-time-grid.vue. */
+    white-space: nowrap;
+  }
+  /* measured (natural, unwrapped width against the 100px box): ko 12h's widest label
+     ('오전 12:45–오후 11:45', double-digit hour + minute on both sides) is ~125.8px; en 12h's
+     widest ('12:45 AM–11:45 PM') is ~115.1px. 136px clears the ko worst case with ~10px to
+     spare. auto/24h max out at ~67px in either language (clock24 in both), well inside 100px,
+     so they're untouched. */
+  .list--12h .time {
+    width: 136px;
   }
   /* min-width: 0 — 없으면 flex 항목의 auto 최소값(=제목 폭)이 남아 긴 제목이 가로 스크롤을 만든다 */
   .list-evt__body {

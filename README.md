@@ -150,6 +150,7 @@ cal.value?.gotoDate(dayjs('2026-08-01'));
 | --- | --- | --- | --- |
 | `views` | `CalView[]` | `['day','week','month','list']` | 툴바에 노출할 뷰 필터 (표시 순서는 일·주·월·목록 고정) |
 | `locale` | `string` | `'ko'` | UI 문자열·날짜 포맷 로케일. `'ko'`·`'en'` 내장, 그 외는 `messages`로 공급 ([로케일](#로케일-i18n) 참조) |
+| `timeFormat` | `'auto' \| '12h' \| '24h'` | `'auto'` | 시각 표기. `'auto'`는 뷰별 관례(월=12시간, 주·일·목록=24시간). `messages`로 넘긴 포맷터가 이 옵션보다 우선합니다 |
 | `messages` | `Partial<CalMessages>` | — | 선택한 로케일 카탈로그 위에 키 단위로 얕게 병합하는 오버라이드 |
 | `primaryColor` | `string` | `'#1976d2'` | 강조색. `--cal-primary` CSS 변수로 주입됩니다 |
 | `firstDay` | `number` | `0` | 주 시작 요일 (0=일요일) |
@@ -257,6 +258,16 @@ const selected = ref(new Date().toISOString());
 
 `ko`(기본)·`en` 카탈로그가 내장되어 있습니다. 버튼·라벨 같은 UI 문자열과 날짜·시간 포맷터가 전부 카탈로그에서 나오므로, 옵션 하나로 전체가 전환됩니다.
 
+12/24시간 표기는 언어와 별개 축입니다. `timeFormat` 옵션으로 로케일과 무관하게 전환할 수 있습니다:
+
+| `timeFormat` | 월 뷰 | 주/일 뷰 | 목록 뷰 | 툴팁 |
+|---|---|---|---|---|
+| `'auto'` (기본) | 12시간 | 24시간 | 24시간 | 24시간 |
+| `'12h'` | 12시간 | 12시간 | 12시간 | 12시간 |
+| `'24h'` | 24시간 | 24시간 | 24시간 | 24시간 |
+
+`'auto'`가 뷰마다 다른 이유: 월 뷰는 단일 시각을 여백 속에 찍어 `오전 9시`가 자연스럽지만, 주/일 뷰에는 시간 눈금이라는 24시간 기준 축이 화면에 있어 그 옆 라벨이 12시간이면 대조되지 않습니다.
+
 ```vue
 <CalCalendar :options="{ locale: 'en' }" />
 ```
@@ -277,9 +288,11 @@ const messages: Partial<CalMessages> = {
 <CalCalendar :options="{ locale: 'ko', messages }" />
 ```
 
-`CalMessages`에는 정적 문자열 외에 요일 배열(`weekdaysShort`)과 날짜·시간 포맷터 함수(`monthTitle`, `eventTime`, `popoverDate` 등)가 포함되어 있어, 전체를 채우면 완전한 커스텀 로케일을 공급할 수 있습니다. `CalMiniMonth`도 동일한 `locale`·`messages` 옵션을 받습니다.
+`CalMessages`에는 정적 문자열 외에 요일 배열(`weekdaysShort`)과 날짜·시간 포맷터 함수(`monthTitle`, `eventTime`, `clockTime`, `tooltipDateTime`, `popoverDate` 등)가 포함되어 있어, 전체를 채우면 완전한 커스텀 로케일을 공급할 수 있습니다. `CalMiniMonth`도 동일한 `locale`·`messages` 옵션을 받습니다.
 
 완전한 커스텀 로케일을 채울 때는 `noEventsOnDay` 키를 빠뜨리지 마세요 — 목록 뷰에서 오늘 일정이 하나도 없을 때 오늘 행에 표시되는 문구입니다. `messages`는 `Partial<CalMessages>` 얕은 병합이라 이 키를 빠뜨려도 타입 에러 없이 한국어 기본값 `'일정 없음'`으로 조용히 폴백됩니다.
+
+같은 이유로 `clockTime`(시:분 한 지점)과 `tooltipDateTime`(툴팁의 날짜+시각)도 빠뜨리지 마세요. 이 둘이 없으면 주/일 눈금·드래그 프리뷰·클러스터 팝오버·툴팁이 한국어 기본 표기로 조용히 폴백합니다. `clockTime`은 `Dayjs`가 아니라 `(hour, minute)`을 받습니다 — 드래그 프리뷰는 자정 기준 분만 들고 있어 `Dayjs`가 없기 때문입니다.
 
 ## 알아둘 점
 
